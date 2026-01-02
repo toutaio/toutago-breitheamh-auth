@@ -33,8 +33,8 @@ const (
 
 // Hasher provides password hashing and verification.
 type Hasher struct {
-	algorithm HashAlgorithm
-	bcryptCost int
+	algorithm    HashAlgorithm
+	bcryptCost   int
 	argon2Params *Argon2Params
 }
 

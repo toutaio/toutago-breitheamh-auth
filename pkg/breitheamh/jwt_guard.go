@@ -24,10 +24,10 @@ type Credentials struct {
 
 // JWTGuard implements Guard using JWT tokens.
 type JWTGuard struct {
-	name          string
-	userProvider  UserProvider
-	tokenManager  TokenManager
-	hasher        *Hasher
+	name         string
+	userProvider UserProvider
+	tokenManager TokenManager
+	hasher       *Hasher
 }
 
 // NewJWTGuard creates a new JWT guard.

@@ -14,21 +14,21 @@ import (
 
 // JWTConfig contains configuration for JWT token generation.
 type JWTConfig struct {
-	SecretKey         []byte
-	AccessTokenTTL    time.Duration
-	RefreshTokenTTL   time.Duration
-	Issuer            string
-	EnableRefresh     bool
+	SecretKey       []byte
+	AccessTokenTTL  time.Duration
+	RefreshTokenTTL time.Duration
+	Issuer          string
+	EnableRefresh   bool
 }
 
 // DefaultJWTConfig returns a default JWT configuration.
 func DefaultJWTConfig(secretKey string) *JWTConfig {
 	return &JWTConfig{
-		SecretKey:         []byte(secretKey),
-		AccessTokenTTL:    15 * time.Minute,
-		RefreshTokenTTL:   7 * 24 * time.Hour,
-		Issuer:            "breitheamh-auth",
-		EnableRefresh:     true,
+		SecretKey:       []byte(secretKey),
+		AccessTokenTTL:  15 * time.Minute,
+		RefreshTokenTTL: 7 * 24 * time.Hour,
+		Issuer:          "breitheamh-auth",
+		EnableRefresh:   true,
 	}
 }
 
@@ -40,19 +40,19 @@ type jwtHeader struct {
 
 // jwtPayload represents the JWT payload.
 type jwtPayload struct {
-	Sub string `json:"sub"`
-	Iat int64  `json:"iat"`
-	Exp int64  `json:"exp"`
-	Iss string `json:"iss"`
-	Jti string `json:"jti"`
+	Sub   string `json:"sub"`
+	Iat   int64  `json:"iat"`
+	Exp   int64  `json:"exp"`
+	Iss   string `json:"iss"`
+	Jti   string `json:"jti"`
 	Email string `json:"email,omitempty"`
 }
 
 // JWTTokenManager implements TokenManager using JWT.
 type JWTTokenManager struct {
-	config         *JWTConfig
-	refreshTokens  map[string]*RefreshToken
-	mu             sync.RWMutex
+	config        *JWTConfig
+	refreshTokens map[string]*RefreshToken
+	mu            sync.RWMutex
 }
 
 // NewJWTTokenManager creates a new JWT token manager.

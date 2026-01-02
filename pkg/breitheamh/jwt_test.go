@@ -138,11 +138,11 @@ func TestJWTEncoding(t *testing.T) {
 	tm := NewJWTTokenManager(config)
 
 	payload := jwtPayload{
-		Sub: "user-1",
-		Iat: time.Now().Unix(),
-		Exp: time.Now().Add(1 * time.Hour).Unix(),
-		Iss: "test",
-		Jti: "token-id",
+		Sub:   "user-1",
+		Iat:   time.Now().Unix(),
+		Exp:   time.Now().Add(1 * time.Hour).Unix(),
+		Iss:   "test",
+		Jti:   "token-id",
 		Email: "test@example.com",
 	}
 
