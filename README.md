@@ -175,16 +175,17 @@ type UserProvider interface {
 - [x] Base user implementation
 - [x] Guard manager
 - [x] JWT guard implementation
+- [x] Session guard implementation
 - [x] Token management and refresh
 - [x] Policy-based authorization
 - [x] Authorization gates
-- [ ] Session guard implementation
+- [ ] API token guard
 - [ ] 2FA support
 - [ ] Rate limiting
 - [ ] Audit logging
 - [ ] User provider adapters (SQL, datamapper)
 - [ ] HTTP middleware
-- [ ] Comprehensive test suite (85.5% coverage - target reached)
+- [x] Comprehensive test suite (85.2% coverage)
 
 ## 🤝 Contributing
 
