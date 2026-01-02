@@ -11,6 +11,9 @@ type User interface {
 	// GetPassword returns the hashed password for the user
 	GetPassword() string
 
+	// GetAuthIdentifier returns the unique identifier used for authentication
+	GetAuthIdentifier() string
+
 	// HasRole checks if the user has the specified role
 	HasRole(role string) bool
 
