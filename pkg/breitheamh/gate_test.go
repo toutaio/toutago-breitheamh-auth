@@ -1,0 +1,173 @@
+package breitheamh
+
+import (
+	"context"
+	"testing"
+)
+
+func TestCallbackGate(t *testing.T) {
+	user := NewBaseUser("user-1", "test@example.com", "password")
+
+	t.Run("Gate allows access", func(t *testing.T) {
+		gate := NewCallbackGate("test-gate", func(ctx context.Context, u User, args ...interface{}) bool {
+			return u.GetID() == "user-1"
+		})
+
+		if !gate.Allows(context.Background(), user) {
+			t.Error("Gate should allow access")
+		}
+
+		if gate.Denies(context.Background(), user) {
+			t.Error("Gate should not deny access")
+		}
+	})
+
+	t.Run("Gate denies access", func(t *testing.T) {
+		gate := NewCallbackGate("test-gate", func(ctx context.Context, u User, args ...interface{}) bool {
+			return u.GetID() == "other-user"
+		})
+
+		if gate.Allows(context.Background(), user) {
+			t.Error("Gate should not allow access")
+		}
+
+		if !gate.Denies(context.Background(), user) {
+			t.Error("Gate should deny access")
+		}
+	})
+
+	t.Run("Gate with arguments", func(t *testing.T) {
+		gate := NewCallbackGate("owns-resource", func(ctx context.Context, u User, args ...interface{}) bool {
+			if len(args) == 0 {
+				return false
+			}
+			resourceOwner, ok := args[0].(string)
+			if !ok {
+				return false
+			}
+			return u.GetID() == resourceOwner
+		})
+
+		if !gate.Allows(context.Background(), user, "user-1") {
+			t.Error("Gate should allow access when user owns resource")
+		}
+
+		if gate.Allows(context.Background(), user, "other-user") {
+			t.Error("Gate should not allow access when user doesn't own resource")
+		}
+	})
+
+	t.Run("Gate name", func(t *testing.T) {
+		gate := NewCallbackGate("my-gate", func(ctx context.Context, u User, args ...interface{}) bool {
+			return true
+		})
+
+		if gate.Name() != "my-gate" {
+			t.Errorf("Gate name = %q, expected %q", gate.Name(), "my-gate")
+		}
+	})
+}
+
+func TestPermissionGate(t *testing.T) {
+	user := NewBaseUser("user-1", "test@example.com", "password")
+	user.GivePermission(Permission{ID: "1", Name: "posts.create"})
+
+	t.Run("Allows with permission", func(t *testing.T) {
+		gate := NewPermissionGate("create-post", "posts.create")
+
+		if !gate.Allows(context.Background(), user) {
+			t.Error("Gate should allow access with permission")
+		}
+	})
+
+	t.Run("Denies without permission", func(t *testing.T) {
+		gate := NewPermissionGate("delete-post", "posts.delete")
+
+		if gate.Allows(context.Background(), user) {
+			t.Error("Gate should not allow access without permission")
+		}
+
+		if !gate.Denies(context.Background(), user) {
+			t.Error("Gate should deny access without permission")
+		}
+	})
+
+	t.Run("Gate name", func(t *testing.T) {
+		gate := NewPermissionGate("create-post", "posts.create")
+
+		if gate.Name() != "create-post" {
+			t.Errorf("Gate name = %q, expected %q", gate.Name(), "create-post")
+		}
+	})
+}
+
+func TestRoleGate(t *testing.T) {
+	user := NewBaseUser("user-1", "test@example.com", "password")
+	editorRole := Role{ID: "1", Name: "editor"}
+	user.AssignRole(editorRole)
+
+	t.Run("Allows with role", func(t *testing.T) {
+		gate := NewRoleGate("editor-only", "editor")
+
+		if !gate.Allows(context.Background(), user) {
+			t.Error("Gate should allow access with role")
+		}
+	})
+
+	t.Run("Denies without role", func(t *testing.T) {
+		gate := NewRoleGate("admin-only", "admin")
+
+		if gate.Allows(context.Background(), user) {
+			t.Error("Gate should not allow access without role")
+		}
+
+		if !gate.Denies(context.Background(), user) {
+			t.Error("Gate should deny access without role")
+		}
+	})
+
+	t.Run("Gate name", func(t *testing.T) {
+		gate := NewRoleGate("editor-only", "editor")
+
+		if gate.Name() != "editor-only" {
+			t.Errorf("Gate name = %q, expected %q", gate.Name(), "editor-only")
+		}
+	})
+}
+
+func TestAuthorizerGates(t *testing.T) {
+	authorizer := NewAuthorizer()
+	user := NewBaseUser("user-1", "test@example.com", "password")
+
+	t.Run("Define and use gate", func(t *testing.T) {
+		authorizer.DefineGate("is-admin", func(ctx context.Context, u User, args ...interface{}) bool {
+			return u.HasPermission("admin.*")
+		})
+
+		if authorizer.Allows(context.Background(), "is-admin", user) {
+			t.Error("Gate should deny access without admin permission")
+		}
+
+		user.GivePermission(Permission{ID: "1", Name: "admin.*"})
+
+		if !authorizer.Allows(context.Background(), "is-admin", user) {
+			t.Error("Gate should allow access with admin permission")
+		}
+	})
+
+	t.Run("Denies method", func(t *testing.T) {
+		authorizer.DefineGate("is-banned", func(ctx context.Context, u User, args ...interface{}) bool {
+			return false
+		})
+
+		if !authorizer.Denies(context.Background(), "is-banned", user) {
+			t.Error("Denies should return true when gate returns false")
+		}
+	})
+
+	t.Run("Non-existent gate", func(t *testing.T) {
+		if authorizer.Allows(context.Background(), "non-existent", user) {
+			t.Error("Non-existent gate should deny access")
+		}
+	})
+}

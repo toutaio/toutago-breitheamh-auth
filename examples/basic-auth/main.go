@@ -11,7 +11,8 @@ import (
 
 func main() {
 	fmt.Println("🔐 Breitheamh Auth - Basic Authentication Example")
-	fmt.Println("==================================================\n")
+	fmt.Println("==================================================")
+	fmt.Println()
 
 	// 1. Create a hasher
 	hasher := breitheamh.NewHasher(breitheamh.AlgorithmBcrypt)
