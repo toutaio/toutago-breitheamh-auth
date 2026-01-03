@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (2026-01-03)
+- RBAC admin panel example demonstrating role-based access control
+- Two-factor authentication (2FA) example with TOTP and backup codes
+- Multi-tenant application example with isolated authentication per tenant
+- Datamapper integration example showing database-backed user provider pattern
+- 11 comprehensive examples covering authentication, authorization, and integrations
+
 ### Added
 - Core authentication interfaces (User, Guard, UserProvider, Authenticatable)
 - Password hashing utilities with bcrypt and argon2id support
@@ -29,7 +36,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Code of Conduct and Contributing guidelines
 - README with quick start examples
 - Quick Start Guide documentation
-- 4 working examples (basic-auth, policy-auth, session-auth, http-middleware)
+- 8 working examples:
+  - basic-auth: Simple authentication flow
+  - jwt-api: JWT-based API authentication
+  - session-auth: Session-based authentication
+  - http-middleware: HTTP middleware integration
+  - policy-authorization: Policy-based authorization
+  - api-token: API token authentication
+  - rbac-admin: RBAC admin panel with role-based access control
+  - 2fa-example: Two-factor authentication implementation
+  - multi-tenant: Multi-tenant application with isolated authentication
+  - datamapper-integration: Database integration example with datamapper pattern
+  - cosan-integration: Cosan router integration
 
 ### Infrastructure
 - Go module initialized (`github.com/toutaio/toutago-breitheamh-auth`)
