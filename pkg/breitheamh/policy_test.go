@@ -3,6 +3,7 @@ package breitheamh
 import (
 	"context"
 	"testing"
+	"time"
 )
 
 // MockPost is a test resource for policy testing.
@@ -265,6 +266,89 @@ t.Run("Before hook returns nil for regular user", func(t *testing.T) {
 // Regular user without author access should be denied
 if authorizer.Can(context.Background(), regularUser, "update", post) {
 t.Error("Regular user should not be able to update other's post")
+}
+})
+}
+
+func TestAuthorizerWithCache(t *testing.T) {
+authorizer := NewAuthorizer()
+authorizer.EnableCache(1 * time.Minute)
+
+policy := &MockPostPolicy{}
+authorizer.RegisterPolicy("MockPost", policy)
+
+user := NewBaseUser("user-1", "test@example.com", "password")
+post := &MockPost{
+ID:        "post-1",
+Title:     "Test Post",
+AuthorID:  "user-1",
+Published: true,
+}
+
+t.Run("Cache stores and retrieves results", func(t *testing.T) {
+// First call - should compute and cache
+result1 := authorizer.Can(context.Background(), user, "view", post)
+if !result1 {
+t.Error("User should be able to view post")
+}
+
+// Second call - should come from cache
+result2 := authorizer.Can(context.Background(), user, "view", post)
+if !result2 {
+t.Error("Cached result should be true")
+}
+})
+
+t.Run("Cache invalidation for user", func(t *testing.T) {
+// Make a call to cache it
+authorizer.Can(context.Background(), user, "update", post)
+
+// Invalidate user cache
+authorizer.InvalidateCacheForUser(user.GetID())
+
+// Next call should recompute (we can't directly verify, but it shouldn't error)
+result := authorizer.Can(context.Background(), user, "update", post)
+if !result {
+t.Error("User should still be able to update after cache invalidation")
+}
+})
+
+t.Run("Cache invalidation for resource", func(t *testing.T) {
+// Make a call to cache it
+authorizer.Can(context.Background(), user, "view", post)
+
+// Invalidate resource cache
+authorizer.InvalidateCacheForResource("MockPost", "post-1")
+
+// Next call should recompute
+result := authorizer.Can(context.Background(), user, "view", post)
+if !result {
+t.Error("User should still be able to view after cache invalidation")
+}
+})
+
+t.Run("Clear cache", func(t *testing.T) {
+// Make some calls to cache them
+authorizer.Can(context.Background(), user, "view", post)
+authorizer.Can(context.Background(), user, "update", post)
+
+// Clear all cache
+authorizer.ClearCache()
+
+// Calls should still work (recomputing)
+result := authorizer.Can(context.Background(), user, "view", post)
+if !result {
+t.Error("User should still be able to view after cache clear")
+}
+})
+
+t.Run("Disable cache", func(t *testing.T) {
+authorizer.DisableCache()
+
+// Calls should work without caching
+result := authorizer.Can(context.Background(), user, "view", post)
+if !result {
+t.Error("User should be able to view with cache disabled")
 }
 })
 }

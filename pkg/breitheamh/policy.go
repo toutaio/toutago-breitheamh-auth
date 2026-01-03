@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 	"strings"
+	"time"
 )
 
 // Policy defines authorization logic for a specific resource type.
@@ -38,17 +39,53 @@ func (r *PolicyRegistry) Get(resourceType string) (Policy, bool) {
 
 // Authorizer handles authorization checks using policies, gates, and permissions.
 type Authorizer struct {
-	policyRegistry *PolicyRegistry
-	gates          map[string]Gate
+	policyRegistry    *PolicyRegistry
+	gates             map[string]Gate
 	permissionMatcher *PermissionMatcher
+	policyCache       *PolicyCache
+	cacheEnabled      bool
 }
 
 // NewAuthorizer creates a new authorizer.
 func NewAuthorizer() *Authorizer {
 	return &Authorizer{
-		policyRegistry: NewPolicyRegistry(),
-		gates:          make(map[string]Gate),
+		policyRegistry:    NewPolicyRegistry(),
+		gates:             make(map[string]Gate),
 		permissionMatcher: NewPermissionMatcher(),
+		policyCache:       NewPolicyCache(5 * time.Minute), // Default 5min TTL
+		cacheEnabled:      false,                            // Disabled by default
+	}
+}
+
+// EnableCache enables policy caching with the specified TTL.
+func (a *Authorizer) EnableCache(ttl time.Duration) {
+	a.policyCache = NewPolicyCache(ttl)
+	a.cacheEnabled = true
+}
+
+// DisableCache disables policy caching.
+func (a *Authorizer) DisableCache() {
+	a.cacheEnabled = false
+}
+
+// ClearCache clears all cached policy decisions.
+func (a *Authorizer) ClearCache() {
+	if a.policyCache != nil {
+		a.policyCache.Clear()
+	}
+}
+
+// InvalidateCacheForUser invalidates all cached decisions for a specific user.
+func (a *Authorizer) InvalidateCacheForUser(userID string) {
+	if a.policyCache != nil {
+		a.policyCache.InvalidateForUser(userID)
+	}
+}
+
+// InvalidateCacheForResource invalidates all cached decisions for a specific resource.
+func (a *Authorizer) InvalidateCacheForResource(resourceType, resourceID string) {
+	if a.policyCache != nil {
+		a.policyCache.InvalidateForResource(resourceType, resourceID)
 	}
 }
 
@@ -64,14 +101,39 @@ func (a *Authorizer) DefineGate(name string, callback GateCallback) {
 
 // Can checks if a user can perform an ability on a resource.
 func (a *Authorizer) Can(ctx context.Context, user User, ability string, resource interface{}) bool {
-	// Super admins bypass all checks
+	// Super admins bypass all checks (and caching)
 	if user.IsSuperAdmin() {
 		return true
 	}
 
-	// First check if there's a policy for this resource type
-	if resource != nil {
+	// Check cache if enabled
+	if a.cacheEnabled && resource != nil {
 		resourceType := getResourceType(resource)
+		resourceID := getResourceID(resource)
+		cacheKey := MakeCacheKey(user.GetID(), ability, resourceType, resourceID)
+
+		if result, exists := a.policyCache.Get(cacheKey); exists {
+			return result
+		}
+
+		// Compute result and cache it
+		result := a.computeAuthorization(ctx, user, ability, resource, resourceType)
+		a.policyCache.Set(cacheKey, result)
+		return result
+	}
+
+	// No caching - compute directly
+	var resourceType string
+	if resource != nil {
+		resourceType = getResourceType(resource)
+	}
+	return a.computeAuthorization(ctx, user, ability, resource, resourceType)
+}
+
+// computeAuthorization performs the actual authorization check.
+func (a *Authorizer) computeAuthorization(ctx context.Context, user User, ability string, resource interface{}, resourceType string) bool {
+	// Check if there's a policy for this resource type
+	if resource != nil && resourceType != "" {
 		if policy, exists := a.policyRegistry.Get(resourceType); exists {
 			// Check policy Before hook
 			if result := policy.Before(ctx, user, ability); result != nil {
