@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added (2026-01-03)
+## [1.0.0] - 2026-01-03
+
+### Added
 - Performance optimizations:
   - Permission caching with configurable TTL
   - Role lookup caching
