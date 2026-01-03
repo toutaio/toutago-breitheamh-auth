@@ -31,31 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Documentation improvements for better discoverability
 
-## [1.0.0] - 2026-01-03
-
-### Added
-- Performance optimizations:
-  - Permission caching with configurable TTL
-  - Role lookup caching
-  - Optimized wildcard permission matching (<100ns per operation)
-  - Lazy loading for user relations via provider pattern
-  - Query batching for permissions through trie-based matching
-- Comprehensive performance benchmarks:
-  - Password hashing (bcrypt: ~46ms, argon2: varies)
-  - Permission matching (exact and wildcard)
-  - Cache operations (get: ~35ns parallel)
-  - Concurrent authentication workflows
-- Production readiness improvements:
-  - Migration guide for v1.0.0
-  - Comprehensive code review completed
-  - Security scanning with gosec integrated
-  - CI/CD pipeline verified and working
-  - Tests passing on multiple Go versions (1.21, 1.22, 1.23)
-- Ecosystem integration adapters:
-  - Toutago framework adapter for seamless integration
-  - Cosan router middleware (auth, permission, role-based)
-  - Scéla event bus integration for auth events (login, logout, permission changes)
-  - Framework integration documentation
+## [0.1.0] - 2026-01-02
 
 ### Added
 - Core authentication interfaces (User, Guard, UserProvider, Authenticatable)
@@ -73,24 +49,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Account locking and email verification support
 - Comprehensive test suite with 83.7% coverage
 - Security tests for timing attacks, token tampering, brute force protection
-- Additional BaseUser methods: RecordFailedLogin, Unlock, GenerateEmailVerificationToken, VerifyEmailWithToken
 - CI/CD pipeline with GitHub Actions
 - Repository setup with MIT license
 - Code of Conduct and Contributing guidelines
 - README with quick start examples
 - Quick Start Guide documentation
-- 8 working examples:
-  - basic-auth: Simple authentication flow
-  - jwt-api: JWT-based API authentication
-  - session-auth: Session-based authentication
-  - http-middleware: HTTP middleware integration
-  - policy-authorization: Policy-based authorization
-  - api-token: API token authentication
-  - rbac-admin: RBAC admin panel with role-based access control
-  - 2fa-example: Two-factor authentication implementation
-  - multi-tenant: Multi-tenant application with isolated authentication
-  - datamapper-integration: Database integration example with datamapper pattern
-  - cosan-integration: Cosan router integration
+- Working examples: basic-auth, jwt-api, session-auth, http-middleware, policy-authorization, api-token, cosan-integration
 
 ### Infrastructure
 - Go module initialized (`github.com/toutaio/toutago-breitheamh-auth`)
@@ -98,15 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - golangci-lint configuration for code quality
 - GitHub Actions CI with testing, coverage, security scanning, and benchmarks
 
-## [0.1.0] - 2026-01-02
-
-### Added
-- Initial release with core features
-- JWT and session-based authentication
-- Role-based access control (RBAC)
-- Policy and gate authorization
-- HTTP middleware
-- Comprehensive documentation
-
-[Unreleased]: https://github.com/toutaio/toutago-breitheamh-auth/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/toutaio/toutago-breitheamh-auth/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/toutaio/toutago-breitheamh-auth/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/toutaio/toutago-breitheamh-auth/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/toutaio/toutago-breitheamh-auth/releases/tag/v0.1.0
