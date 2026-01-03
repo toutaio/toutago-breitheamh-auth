@@ -1,6 +1,7 @@
 package breitheamh
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -163,4 +164,99 @@ func TestBaseUserEmailVerified(t *testing.T) {
 	if !user.IsEmailVerified() {
 		t.Error("User email should be verified")
 	}
+}
+
+func TestSuperAdmin(t *testing.T) {
+t.Run("Super admin bypasses permission checks", func(t *testing.T) {
+user := NewBaseUser("admin-1", "admin@example.com", "password")
+user.SetSuperAdmin(true)
+
+// Should have any permission without assignment
+if !user.HasPermission("posts.create") {
+t.Error("Super admin should have all permissions")
+}
+
+if !user.HasPermission("users.delete") {
+t.Error("Super admin should have all permissions")
+}
+
+if !user.HasPermission("anything.at.all") {
+t.Error("Super admin should have all permissions")
+}
+})
+
+t.Run("Super admin bypasses role checks", func(t *testing.T) {
+user := NewBaseUser("admin-1", "admin@example.com", "password")
+user.SetSuperAdmin(true)
+
+// Should have any role without assignment
+if !user.HasRole("admin") {
+t.Error("Super admin should have all roles")
+}
+
+if !user.HasRole("editor") {
+t.Error("Super admin should have all roles")
+}
+})
+
+t.Run("Regular user without super admin", func(t *testing.T) {
+user := NewBaseUser("user-1", "user@example.com", "password")
+
+// Should not have permissions
+if user.HasPermission("posts.create") {
+t.Error("Regular user should not have unassigned permission")
+}
+
+// Assign permission
+user.GivePermission(Permission{Name: "posts.create"})
+
+// Now should have it
+if !user.HasPermission("posts.create") {
+t.Error("User should have assigned permission")
+}
+
+// Should not have other permissions
+if user.HasPermission("posts.delete") {
+t.Error("User should not have unassigned permission")
+}
+})
+
+t.Run("IsSuperAdmin returns correct status", func(t *testing.T) {
+user := NewBaseUser("user-1", "user@example.com", "password")
+
+if user.IsSuperAdmin() {
+t.Error("New user should not be super admin")
+}
+
+user.SetSuperAdmin(true)
+
+if !user.IsSuperAdmin() {
+t.Error("User should be super admin after setting")
+}
+
+user.SetSuperAdmin(false)
+
+if user.IsSuperAdmin() {
+t.Error("User should not be super admin after unsetting")
+}
+})
+
+t.Run("Super admin in authorization flow", func(t *testing.T) {
+superAdmin := NewBaseUser("admin-1", "admin@example.com", "password")
+superAdmin.SetSuperAdmin(true)
+
+regularUser := NewBaseUser("user-1", "user@example.com", "password")
+
+authorizer := NewAuthorizer()
+
+// Super admin should pass any check
+if !authorizer.Can(context.Background(), superAdmin, "posts.create", nil) {
+t.Error("Super admin should pass any authorization check")
+}
+
+// Regular user should fail without permission
+if authorizer.Can(context.Background(), regularUser, "posts.create", nil) {
+t.Error("Regular user should fail without permission")
+}
+})
 }

@@ -14,6 +14,7 @@ type BaseUser struct {
 	FailedLoginCount  int
 	Roles             []Role
 	DirectPermissions []Permission
+	SuperAdmin        bool // When true, bypasses all permission and role checks
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 
@@ -58,6 +59,11 @@ func (u *BaseUser) GetAuthPassword() string {
 
 // HasRole checks if the user has the specified role.
 func (u *BaseUser) HasRole(roleName string) bool {
+	// Super admins bypass all checks
+	if u.SuperAdmin {
+		return true
+	}
+
 	for _, role := range u.Roles {
 		if role.Name == roleName {
 			return true
@@ -82,6 +88,11 @@ func (u *BaseUser) hasRoleRecursive(roleName string, role Role) bool {
 
 // HasPermission checks if the user has the specified permission.
 func (u *BaseUser) HasPermission(permission string) bool {
+	// Super admins bypass all checks
+	if u.SuperAdmin {
+		return true
+	}
+
 	// Check direct permissions
 	for _, p := range u.DirectPermissions {
 		if u.permissionMatcher.Match(p.Name, permission) {
@@ -184,3 +195,16 @@ func (u *BaseUser) IsLocked() bool {
 func (u *BaseUser) IsEmailVerified() bool {
 	return u.EmailVerifiedAt != nil
 }
+
+// IsSuperAdmin checks if the user has super admin privileges.
+// Super admins bypass all permission and role checks.
+func (u *BaseUser) IsSuperAdmin() bool {
+	return u.SuperAdmin
+}
+
+// SetSuperAdmin sets the super admin status for the user.
+func (u *BaseUser) SetSuperAdmin(isSuperAdmin bool) {
+	u.SuperAdmin = isSuperAdmin
+	u.UpdatedAt = time.Now()
+}
+

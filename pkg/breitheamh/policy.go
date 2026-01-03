@@ -60,6 +60,11 @@ func (a *Authorizer) DefineGate(name string, callback GateCallback) {
 
 // Can checks if a user can perform an ability on a resource.
 func (a *Authorizer) Can(ctx context.Context, user User, ability string, resource interface{}) bool {
+	// Super admins bypass all checks
+	if user.IsSuperAdmin() {
+		return true
+	}
+
 	// First check if there's a policy for this resource type
 	if resource != nil {
 		resourceType := getResourceType(resource)

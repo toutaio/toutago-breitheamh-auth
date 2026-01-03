@@ -25,6 +25,9 @@ type User interface {
 
 	// GetPermissions returns all permissions assigned to the user (direct and via roles)
 	GetPermissions() []Permission
+
+	// IsSuperAdmin checks if the user has super admin privileges (bypasses all checks)
+	IsSuperAdmin() bool
 }
 
 // Authenticatable represents any entity that can be authenticated.
