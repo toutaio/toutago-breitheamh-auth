@@ -167,6 +167,16 @@ type UserProvider interface {
 }
 ```
 
+## 📚 Examples
+
+Check out the [examples](./examples) directory for complete working examples:
+
+- **[basic-auth](./examples/basic-auth)** - Password hashing, JWT tokens, and permissions
+- **[policy-authorization](./examples/policy-authorization)** - Gates and policy-based authorization
+- **[session-auth](./examples/session-auth)** - Session management and multi-guard setup
+- **[http-middleware](./examples/http-middleware)** - HTTP server with authentication middleware
+- **[api-token](./examples/api-token)** - API token authentication for third-party integrations
+
 ## 🎯 Roadmap
 
 - [x] Core interfaces and types
