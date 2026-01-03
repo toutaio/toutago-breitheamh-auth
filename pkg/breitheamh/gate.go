@@ -2,6 +2,11 @@ package breitheamh
 
 import "context"
 
+// GateInterceptor is a function that runs before or after a gate check.
+// It can modify the result or perform side effects.
+// Returning nil continues to the next interceptor/gate, returning a bool overrides the result.
+type GateInterceptor func(ctx context.Context, user User, gateName string, args ...interface{}) *bool
+
 // GateCallback is a function that determines if access should be granted.
 type GateCallback func(ctx context.Context, user User, args ...interface{}) bool
 
@@ -19,21 +24,54 @@ type Gate interface {
 
 // CallbackGate implements Gate using a callback function.
 type CallbackGate struct {
-	name     string
-	callback GateCallback
+	name              string
+	callback          GateCallback
+	beforeInterceptors []GateInterceptor
+	afterInterceptors  []GateInterceptor
 }
 
 // NewCallbackGate creates a new callback-based gate.
 func NewCallbackGate(name string, callback GateCallback) *CallbackGate {
 	return &CallbackGate{
-		name:     name,
-		callback: callback,
+		name:               name,
+		callback:           callback,
+		beforeInterceptors: []GateInterceptor{},
+		afterInterceptors:  []GateInterceptor{},
 	}
+}
+
+// Before adds a before interceptor to the gate.
+func (g *CallbackGate) Before(interceptor GateInterceptor) *CallbackGate {
+	g.beforeInterceptors = append(g.beforeInterceptors, interceptor)
+	return g
+}
+
+// After adds an after interceptor to the gate.
+func (g *CallbackGate) After(interceptor GateInterceptor) *CallbackGate {
+	g.afterInterceptors = append(g.afterInterceptors, interceptor)
+	return g
 }
 
 // Allows checks if the gate allows access.
 func (g *CallbackGate) Allows(ctx context.Context, user User, args ...interface{}) bool {
-	return g.callback(ctx, user, args...)
+	// Run before interceptors
+	for _, interceptor := range g.beforeInterceptors {
+		if result := interceptor(ctx, user, g.name, args...); result != nil {
+			return *result
+		}
+	}
+
+	// Execute the main gate callback
+	result := g.callback(ctx, user, args...)
+
+	// Run after interceptors
+	for _, interceptor := range g.afterInterceptors {
+		if overrideResult := interceptor(ctx, user, g.name, args...); overrideResult != nil {
+			return *overrideResult
+		}
+	}
+
+	return result
 }
 
 // Denies checks if the gate denies access.
