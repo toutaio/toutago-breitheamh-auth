@@ -62,7 +62,7 @@ func NewDataMapperProvider(mapper DataMapper, config *DataMapperConfig) *DataMap
 }
 
 // RetrieveByID retrieves a user by their unique identifier
-func (p *DataMapperProvider) RetrieveByID(ctx context.Context, id interface{}) (breitheamh.Authenticatable, error) {
+func (p *DataMapperProvider) RetrieveByID(ctx context.Context, id interface{}) (breitheamh.User, error) {
 	user := &breitheamh.BaseUser{}
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", p.userTable)
 	
@@ -83,7 +83,7 @@ func (p *DataMapperProvider) RetrieveByID(ctx context.Context, id interface{}) (
 }
 
 // RetrieveByCredentials retrieves a user by their credentials
-func (p *DataMapperProvider) RetrieveByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.Authenticatable, error) {
+func (p *DataMapperProvider) RetrieveByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
 	// Typically credentials contain "email" or "username" and "password"
 	identifier, ok := credentials["email"]
 	if !ok {
@@ -119,7 +119,7 @@ func (p *DataMapperProvider) RetrieveByCredentials(ctx context.Context, credenti
 }
 
 // RetrieveByToken retrieves a user by their remember token
-func (p *DataMapperProvider) RetrieveByToken(ctx context.Context, identifier, token string) (breitheamh.Authenticatable, error) {
+func (p *DataMapperProvider) RetrieveByToken(ctx context.Context, identifier, token string) (breitheamh.User, error) {
 	user := &breitheamh.BaseUser{}
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = $1 AND remember_token = $2", p.userTable)
 	
@@ -140,7 +140,7 @@ func (p *DataMapperProvider) RetrieveByToken(ctx context.Context, identifier, to
 }
 
 // UpdateRememberToken updates the remember token for a user
-func (p *DataMapperProvider) UpdateRememberToken(ctx context.Context, user breitheamh.Authenticatable, token string) error {
+func (p *DataMapperProvider) UpdateRememberToken(ctx context.Context, user breitheamh.User, token string) error {
 	baseUser, ok := user.(*breitheamh.BaseUser)
 	if !ok {
 		return fmt.Errorf("user must be of type *BaseUser")
@@ -158,14 +158,14 @@ func (p *DataMapperProvider) loadRoles(ctx context.Context, user *breitheamh.Bas
 		WHERE ur.user_id = $1
 	`, p.roleTable, p.userRoleTable)
 
-	var roles []*breitheamh.Role
+	var roles []breitheamh.Role
 	if err := p.mapper.FindAll(ctx, &roles, query, user.ID); err != nil {
 		return err
 	}
 
 	// Load permissions for each role
-	for _, role := range roles {
-		if err := p.loadRolePermissions(ctx, role); err != nil {
+	for i := range roles {
+		if err := p.loadRolePermissions(ctx, &roles[i]); err != nil {
 			return err
 		}
 	}
@@ -182,7 +182,7 @@ func (p *DataMapperProvider) loadPermissions(ctx context.Context, user *breithea
 		WHERE up.user_id = $1
 	`, p.permissionTable, p.userPermTable)
 
-	var permissions []*breitheamh.Permission
+	var permissions []breitheamh.Permission
 	if err := p.mapper.FindAll(ctx, &permissions, query, user.ID); err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func (p *DataMapperProvider) loadRolePermissions(ctx context.Context, role *brei
 		WHERE rp.role_id = $1
 	`, p.permissionTable, p.rolePermTable)
 
-	var permissions []*breitheamh.Permission
+	var permissions []breitheamh.Permission
 	if err := p.mapper.FindAll(ctx, &permissions, query, role.ID); err != nil {
 		return err
 	}
@@ -207,3 +207,23 @@ func (p *DataMapperProvider) loadRolePermissions(ctx context.Context, role *brei
 	role.Permissions = permissions
 	return nil
 }
+
+// FindByID implements the UserProvider interface
+func (p *DataMapperProvider) FindByID(ctx context.Context, id string) (breitheamh.User, error) {
+	return p.RetrieveByID(ctx, id)
+}
+
+// FindByCredentials implements the UserProvider interface
+func (p *DataMapperProvider) FindByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
+	return p.RetrieveByCredentials(ctx, credentials)
+}
+
+// UpdateUser implements the UserProvider interface
+func (p *DataMapperProvider) UpdateUser(ctx context.Context, user breitheamh.User) error {
+	baseUser, ok := user.(*breitheamh.BaseUser)
+	if !ok {
+		return fmt.Errorf("user must be of type *BaseUser")
+	}
+	return p.mapper.Update(ctx, baseUser)
+}
+

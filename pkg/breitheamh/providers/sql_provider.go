@@ -275,3 +275,37 @@ func (p *SQLProvider) RemovePermission(ctx context.Context, userID, permissionID
 	_, err := p.db.ExecContext(ctx, query, userID, permissionID)
 	return err
 }
+
+// FindByID implements the UserProvider interface
+func (p *SQLProvider) FindByID(ctx context.Context, id string) (breitheamh.User, error) {
+	return p.RetrieveByID(ctx, id)
+}
+
+// FindByCredentials implements the UserProvider interface
+func (p *SQLProvider) FindByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
+	return p.RetrieveByCredentials(ctx, credentials)
+}
+
+// UpdateUser implements the UserProvider interface
+func (p *SQLProvider) UpdateUser(ctx context.Context, user breitheamh.User) error {
+	baseUser, ok := user.(*breitheamh.BaseUser)
+	if !ok {
+		return fmt.Errorf("user must be of type *BaseUser")
+	}
+	
+	query := fmt.Sprintf(`
+		UPDATE %s 
+		SET email = ?, password = ?, remember_token = ?, updated_at = ?
+		WHERE id = ?
+	`, p.userTable)
+	
+	_, err := p.db.ExecContext(ctx, query,
+		baseUser.Email,
+		baseUser.Password,
+		baseUser.RememberToken,
+		baseUser.UpdatedAt,
+		baseUser.ID,
+	)
+	return err
+}
+
