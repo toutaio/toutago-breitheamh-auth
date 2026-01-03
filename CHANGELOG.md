@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added (2026-01-03)
+- Ecosystem integration adapters:
+  - Toutago framework adapter for seamless integration
+  - Cosan router middleware (auth, permission, role-based)
+  - Scéla event bus integration for auth events (login, logout, permission changes)
+  - Framework integration documentation
 - RBAC admin panel example demonstrating role-based access control
 - Two-factor authentication (2FA) example with TOTP and backup codes
 - Multi-tenant application example with isolated authentication per tenant
