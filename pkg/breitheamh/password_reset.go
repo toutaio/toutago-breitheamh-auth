@@ -321,7 +321,7 @@ func (pm *PasswordManager) WithVerificationExpiry(expiry time.Duration) *Passwor
 // CreatePasswordResetToken creates a new password reset token
 func (pm *PasswordManager) CreatePasswordResetToken(email string) (*PasswordResetToken, error) {
 	// Delete any existing tokens for this email
-	pm.resetStore.DeleteByEmail(email)
+	_ = pm.resetStore.DeleteByEmail(email)
 
 	return pm.resetStore.Create(email, pm.resetExpiry)
 }
@@ -367,7 +367,7 @@ func (pm *PasswordManager) ResetPassword(token, newPassword string) error {
 // CreateEmailVerificationToken creates a new email verification token
 func (pm *PasswordManager) CreateEmailVerificationToken(userID, email string) (*EmailVerificationToken, error) {
 	// Delete any existing tokens for this user
-	pm.verificationStore.DeleteByUserID(userID)
+	_ = pm.verificationStore.DeleteByUserID(userID)
 
 	return pm.verificationStore.Create(userID, email, pm.verificationExpiry)
 }

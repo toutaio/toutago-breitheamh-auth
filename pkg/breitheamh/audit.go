@@ -291,7 +291,7 @@ func (g *AuditableGuard) Authenticate(ctx context.Context, credentials interface
 		event.Result = "success"
 	}
 
-	g.logger.Log(ctx, event)
+	_ = g.logger.Log(ctx, event)
 	return user, err
 }
 
@@ -315,7 +315,7 @@ func (g *AuditableGuard) Logout(ctx context.Context, user User) error {
 		event.IP = ip
 	}
 
-	g.logger.Log(ctx, event)
+	_ = g.logger.Log(ctx, event)
 	return err
 }
 

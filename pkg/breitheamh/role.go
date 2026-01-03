@@ -86,4 +86,3 @@ func (r *Role) GetAllPermissions(roleProvider RoleProvider) []Permission {
 
 	return perms
 }
-

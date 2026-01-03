@@ -33,7 +33,11 @@ type AuthEvent struct {
 }
 
 // PublishLoginEvent publishes a user login event
-func (p *EventPublisher) PublishLoginEvent(ctx context.Context, userID, guard string, metadata map[string]interface{}) error {
+func (p *EventPublisher) PublishLoginEvent(
+	ctx context.Context,
+	userID, guard string,
+	metadata map[string]interface{},
+) error {
 	event := AuthEvent{
 		Type:      "auth.login",
 		UserID:    userID,
@@ -45,7 +49,11 @@ func (p *EventPublisher) PublishLoginEvent(ctx context.Context, userID, guard st
 }
 
 // PublishLogoutEvent publishes a user logout event
-func (p *EventPublisher) PublishLogoutEvent(ctx context.Context, userID, guard string, metadata map[string]interface{}) error {
+func (p *EventPublisher) PublishLogoutEvent(
+	ctx context.Context,
+	userID, guard string,
+	metadata map[string]interface{},
+) error {
 	event := AuthEvent{
 		Type:      "auth.logout",
 		UserID:    userID,
@@ -57,7 +65,11 @@ func (p *EventPublisher) PublishLogoutEvent(ctx context.Context, userID, guard s
 }
 
 // PublishFailedLoginEvent publishes a failed login attempt event
-func (p *EventPublisher) PublishFailedLoginEvent(ctx context.Context, identifier, guard string, metadata map[string]interface{}) error {
+func (p *EventPublisher) PublishFailedLoginEvent(
+	ctx context.Context,
+	identifier, guard string,
+	metadata map[string]interface{},
+) error {
 	event := AuthEvent{
 		Type:      "auth.login.failed",
 		UserID:    identifier,
@@ -69,7 +81,11 @@ func (p *EventPublisher) PublishFailedLoginEvent(ctx context.Context, identifier
 }
 
 // PublishPasswordResetEvent publishes a password reset event
-func (p *EventPublisher) PublishPasswordResetEvent(ctx context.Context, userID string, metadata map[string]interface{}) error {
+func (p *EventPublisher) PublishPasswordResetEvent(
+	ctx context.Context,
+	userID string,
+	metadata map[string]interface{},
+) error {
 	event := AuthEvent{
 		Type:      "auth.password.reset",
 		UserID:    userID,
@@ -80,7 +96,11 @@ func (p *EventPublisher) PublishPasswordResetEvent(ctx context.Context, userID s
 }
 
 // PublishEmailVerifiedEvent publishes an email verified event
-func (p *EventPublisher) PublishEmailVerifiedEvent(ctx context.Context, userID string, metadata map[string]interface{}) error {
+func (p *EventPublisher) PublishEmailVerifiedEvent(
+	ctx context.Context,
+	userID string,
+	metadata map[string]interface{},
+) error {
 	event := AuthEvent{
 		Type:      "auth.email.verified",
 		UserID:    userID,
@@ -91,7 +111,11 @@ func (p *EventPublisher) PublishEmailVerifiedEvent(ctx context.Context, userID s
 }
 
 // PublishPermissionGrantedEvent publishes a permission granted event
-func (p *EventPublisher) PublishPermissionGrantedEvent(ctx context.Context, userID, permission string, metadata map[string]interface{}) error {
+func (p *EventPublisher) PublishPermissionGrantedEvent(
+	ctx context.Context,
+	userID, permission string,
+	metadata map[string]interface{},
+) error {
 	if metadata == nil {
 		metadata = make(map[string]interface{})
 	}
@@ -107,7 +131,11 @@ func (p *EventPublisher) PublishPermissionGrantedEvent(ctx context.Context, user
 }
 
 // PublishRoleAssignedEvent publishes a role assigned event
-func (p *EventPublisher) PublishRoleAssignedEvent(ctx context.Context, userID, role string, metadata map[string]interface{}) error {
+func (p *EventPublisher) PublishRoleAssignedEvent(
+	ctx context.Context,
+	userID, role string,
+	metadata map[string]interface{},
+) error {
 	if metadata == nil {
 		metadata = make(map[string]interface{})
 	}
