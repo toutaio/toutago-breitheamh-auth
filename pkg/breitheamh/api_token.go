@@ -185,6 +185,13 @@ func (g *APITokenGuard) Authenticate(ctx context.Context, credentials interface{
 	return nil, errors.New("authenticate not supported for API token guard")
 }
 
+// Logout is not applicable for stateless API tokens but required by Guard interface.
+func (g *APITokenGuard) Logout(ctx context.Context, user User) error {
+	// API tokens are stateless, so logout is not applicable
+	// Tokens can be revoked explicitly using RevokeToken or RevokeAllTokens
+	return nil
+}
+
 // Validate validates an API token and returns the associated user.
 func (g *APITokenGuard) Validate(ctx context.Context, token string) (User, error) {
 	apiToken, err := g.tokenStore.FindByToken(ctx, token)
