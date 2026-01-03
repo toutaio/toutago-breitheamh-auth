@@ -1,60 +1,59 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
+	"github.com/toutaio/toutago-breitheamh-auth/adapters/memory"
 	"github.com/toutaio/toutago-breitheamh-auth/pkg/breitheamh"
-	"github.com/toutaio/toutago-breitheamh-auth/pkg/breitheamh/cosan"
-	"github.com/toutaio/toutago-breitheamh-auth/pkg/breitheamh/providers"
 )
 
 // This example demonstrates how to integrate Breitheamh authentication
-// with Cosan router (or any HTTP router using http.HandlerFunc)
+// with any HTTP router using http.HandlerFunc
 
 func main() {
 	// 1. Set up user provider (in-memory for example)
-	config := providers.MemoryProviderConfig{}
-	provider := providers.NewMemoryProvider(config)
+	provider := memory.NewProvider()
 
 	// Add a test user with roles and permissions
-	hasher := breitheamh.NewBcryptHasher(10)
+	hasher := breitheamh.NewHasher(breitheamh.AlgorithmBcrypt)
 	hashedPassword, _ := hasher.Hash("password123")
 
-	user := &breitheamh.BaseUser{
-		ID:       "1",
-		Email:    "admin@example.com",
-		Password: hashedPassword,
-		Roles: []breitheamh.Role{
-			{Name: "admin", GuardName: "jwt"},
-			{Name: "editor", GuardName: "jwt"},
-		},
-		DirectPermissions: []breitheamh.Permission{
-			{Name: "posts.create", GuardName: "jwt"},
-			{Name: "posts.edit", GuardName: "jwt"},
-			{Name: "posts.delete", GuardName: "jwt"},
-			{Name: "users.manage", GuardName: "jwt"},
-		},
-	}
+	user := breitheamh.NewBaseUser("1", "admin@example.com", hashedPassword)
+	user.AssignRole(breitheamh.Role{
+		ID:   "role-1",
+		Name: "admin",
+	})
+	user.AssignRole(breitheamh.Role{
+		ID:   "role-2",
+		Name: "editor",
+	})
+	user.GivePermission(breitheamh.Permission{
+		ID:   "perm-1",
+		Name: "posts.create",
+	})
+	user.GivePermission(breitheamh.Permission{
+		ID:   "perm-2",
+		Name: "posts.edit",
+	})
+	user.GivePermission(breitheamh.Permission{
+		ID:   "perm-3",
+		Name: "posts.delete",
+	})
+	user.GivePermission(breitheamh.Permission{
+		ID:   "perm-4",
+		Name: "users.manage",
+	})
 	provider.AddUser(user)
 
 	// 2. Set up JWT guard
-	jwtGuard := breitheamh.NewJWTGuard(breitheamh.JWTConfig{
-		Provider:   provider,
-		SigningKey: []byte("your-secret-key-change-in-production"),
-		Issuer:     "breitheamh-example",
-		Audience:   []string{"api"},
-		TTL:        15 * time.Minute,
-	})
+	jwtConfig := breitheamh.DefaultJWTConfig("your-secret-key-change-in-production-min-32!!")
+	tokenManager := breitheamh.NewJWTTokenManager(jwtConfig)
+	jwtGuard := breitheamh.NewJWTGuard("jwt", provider, tokenManager, hasher)
 
 	// 3. Create authentication middleware
-	authMiddleware := cosan.NewAuthMiddleware(cosan.AuthMiddlewareConfig{
-		Guard:        jwtGuard,
-		ExcludePaths: []string{"/", "/login", "/health"},
-	})
+	authMiddleware := breitheamh.NewAuthMiddleware(jwtGuard)
 
 	// 4. Set up routes
 	mux := http.NewServeMux()
@@ -65,27 +64,27 @@ func main() {
 	mux.HandleFunc("/login", handleLogin(jwtGuard))
 
 	// Protected routes (authentication required)
-	mux.HandleFunc("/profile", authMiddleware.Handle(handleProfile))
-	mux.HandleFunc("/dashboard", authMiddleware.Handle(handleDashboard))
+	mux.Handle("/profile", authMiddleware.Handle(http.HandlerFunc(handleProfile)))
+	mux.Handle("/dashboard", authMiddleware.Handle(http.HandlerFunc(handleDashboard)))
 
 	// Routes with role requirements
-	mux.HandleFunc("/admin",
+	mux.Handle("/admin",
 		authMiddleware.Handle(
-			cosan.RequireRole("admin")(handleAdmin),
+			requireRole("admin")(http.HandlerFunc(handleAdmin)),
 		),
 	)
 
 	// Routes with permission requirements
-	mux.HandleFunc("/posts",
+	mux.Handle("/posts",
 		authMiddleware.Handle(
-			cosan.RequirePermission("posts.create")(handleCreatePost),
+			requirePermission("posts.create")(http.HandlerFunc(handleCreatePost)),
 		),
 	)
 
 	// Routes with multiple role options
-	mux.HandleFunc("/content",
+	mux.Handle("/content",
 		authMiddleware.Handle(
-			cosan.RequireAnyRole("admin", "editor", "moderator")(handleContent),
+			requireAnyRole("admin", "editor", "moderator")(http.HandlerFunc(handleContent)),
 		),
 	)
 
@@ -93,6 +92,63 @@ func main() {
 	log.Println("Server starting on :8080")
 	log.Println("Try: curl -X POST http://localhost:8080/login -d '{\"email\":\"admin@example.com\",\"password\":\"password123\"}'")
 	log.Fatal(http.ListenAndServe(":8080", mux))
+}
+
+// Helper middleware functions
+func requireRole(role string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user := r.Context().Value(breitheamh.UserContextKey)
+			if user == nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			authUser := user.(breitheamh.User)
+			if !authUser.HasRole(role) {
+				http.Error(w, "Forbidden: missing required role", http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func requirePermission(permission string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user := r.Context().Value(breitheamh.UserContextKey)
+			if user == nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			authUser := user.(breitheamh.User)
+			if !authUser.HasPermission(permission) {
+				http.Error(w, "Forbidden: missing required permission", http.StatusForbidden)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func requireAnyRole(roles ...string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user := r.Context().Value(breitheamh.UserContextKey)
+			if user == nil {
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			authUser := user.(breitheamh.User)
+			for _, role := range roles {
+				if authUser.HasRole(role) {
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
+			http.Error(w, "Forbidden: missing required role", http.StatusForbidden)
+		})
+	}
 }
 
 func handleHome(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +167,7 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"status":"healthy"}`)
 }
 
-func handleLogin(guard breitheamh.Guard) http.HandlerFunc {
+func handleLogin(guard *breitheamh.JWTGuard) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -124,57 +180,45 @@ func handleLogin(guard breitheamh.Guard) http.HandlerFunc {
 		}
 
 		// Authenticate with JWT guard
-		user, err := guard.Authenticate(r.Context(), credentials)
+		user, token, err := guard.Attempt(r.Context(), credentials)
 		if err != nil {
 			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 			return
 		}
 
-		// Generate token
-		jwtGuard, ok := guard.(*breitheamh.JWTGuard)
-		if !ok {
-			http.Error(w, "Internal error", http.StatusInternalServerError)
-			return
-		}
-
-		token, err := jwtGuard.GenerateToken(user)
-		if err != nil {
-			http.Error(w, "Failed to generate token", http.StatusInternalServerError)
-			return
-		}
-
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, `{"token":"%s","user":"%s"}`, token, user.GetAuthIdentifier())
+		fmt.Fprintf(w, `{"access_token":"%s","user":"%s"}`, token.AccessToken, user.GetAuthIdentifier())
 	}
 }
 
 func handleProfile(w http.ResponseWriter, r *http.Request) {
-	user := cosan.GetUser(r.Context())
+	user := r.Context().Value(breitheamh.UserContextKey)
 	if user == nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+	authUser := user.(breitheamh.User)
 
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprintf(w, `{"id":"%v","email":"%s"}`, user.GetAuthIdentifier(), user.GetAuthIdentifier())
+	fmt.Fprintf(w, `{"id":"%v","email":"%s"}`, authUser.GetID(), authUser.GetAuthIdentifier())
 }
 
 func handleDashboard(w http.ResponseWriter, r *http.Request) {
-	user := cosan.GetUser(r.Context())
+	user := r.Context().Value(breitheamh.UserContextKey).(breitheamh.User)
 	fmt.Fprintf(w, "Welcome to dashboard, %s!\n", user.GetAuthIdentifier())
 }
 
 func handleAdmin(w http.ResponseWriter, r *http.Request) {
-	user := cosan.GetUser(r.Context())
+	user := r.Context().Value(breitheamh.UserContextKey).(breitheamh.User)
 	fmt.Fprintf(w, "Admin panel - Hello %s (admin)\n", user.GetAuthIdentifier())
 }
 
 func handleCreatePost(w http.ResponseWriter, r *http.Request) {
-	user := cosan.GetUser(r.Context())
+	user := r.Context().Value(breitheamh.UserContextKey).(breitheamh.User)
 	fmt.Fprintf(w, "Post created by %s\n", user.GetAuthIdentifier())
 }
 
 func handleContent(w http.ResponseWriter, r *http.Request) {
-	user := cosan.GetUser(r.Context())
+	user := r.Context().Value(breitheamh.UserContextKey).(breitheamh.User)
 	fmt.Fprintf(w, "Content management - Hello %s\n", user.GetAuthIdentifier())
 }

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-01-03
+
+### Fixed
+- Fixed broken examples to use correct API patterns
+- Removed overly complex examples that demonstrated unimplemented features
+
+### Changed
+- Updated examples README to reflect available examples
+- Simplified example set to focus on core features
+
+### Removed
+- Removed placeholder examples: 2fa-example, datamapper-integration, multi-tenant, rbac-admin
+- Removed internal summary and progress tracking files
+
 ## [0.1.1] - 2026-01-03
 
 ### Added
@@ -42,11 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Cosan router middleware (auth, permission, role-based)
   - Scéla event bus integration for auth events (login, logout, permission changes)
   - Framework integration documentation
-- RBAC admin panel example demonstrating role-based access control
-- Two-factor authentication (2FA) example with TOTP and backup codes
-- Multi-tenant application example with isolated authentication per tenant
-- Datamapper integration example showing database-backed user provider pattern
-- 11 comprehensive examples covering authentication, authorization, and integrations
 
 ### Added
 - Core authentication interfaces (User, Guard, UserProvider, Authenticatable)

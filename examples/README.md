@@ -15,7 +15,8 @@ go run main.go
 Features:
 - User registration with password hashing
 - Login with credentials validation
-- Basic user management
+- Role and permission management
+- Password verification
 
 ### 2. JWT API Authentication (`jwt-api/`)
 **Demonstrates:** JWT-based API authentication with token generation and validation.
@@ -86,100 +87,8 @@ Features:
 - Rate limiting
 - IP-based restrictions
 
-### 7. RBAC Admin Panel (`rbac-admin/`)
-**Demonstrates:** Role-based access control (RBAC) for an admin panel.
-
-```bash
-cd examples/rbac-admin
-go run main.go
-# Login with: admin@example.com / admin123
-```
-
-Features:
-- Role-based access control
-- Multiple user roles (admin, editor, viewer)
-- Permission-based resource access
-- RESTful API endpoints
-
-Example requests:
-```bash
-# Login
-curl -X POST http://localhost:8080/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@example.com","password":"admin123"}'
-
-# Access protected endpoint
-curl http://localhost:8080/users \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-
-### 8. Two-Factor Authentication (`2fa-example/`)
-**Demonstrates:** Complete 2FA implementation with TOTP and backup codes.
-
-```bash
-cd examples/2fa-example
-go run main.go
-```
-
-Features:
-- TOTP secret generation
-- QR code URL generation
-- Authenticator app integration
-- Backup code generation and validation
-- 2FA enablement/disablement flow
-
-### 9. Multi-Tenant Application (`multi-tenant/`)
-**Demonstrates:** Multi-tenant architecture with isolated authentication per tenant.
-
-```bash
-cd examples/multi-tenant
-go run main.go
-```
-
-Features:
-- Tenant isolation
-- Tenant-specific user providers
-- Tenant-specific JWT secrets
-- Tenant-scoped authentication
-- Middleware-based tenant resolution
-
-Example requests:
-```bash
-# Login to Acme Corp
-curl -X POST http://localhost:8080/login \
-  -H "X-Tenant-ID: acme-corp" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@acme.com","password":"acme123"}'
-
-# Login to Tech Inc
-curl -X POST http://localhost:8080/login \
-  -H "X-Tenant-ID: tech-inc" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@tech.com","password":"tech123"}'
-```
-
-### 10. Datamapper Integration (`datamapper-integration/`)
-**Demonstrates:** Integration with database using the datamapper pattern.
-
-```bash
-cd examples/datamapper-integration
-go run main.go
-```
-
-Features:
-- UserProvider implementation for database backends
-- Role and permission loading from database
-- Database schema examples
-- Eager loading patterns
-
-Includes:
-- PostgreSQL/MySQL compatible schema
-- User, Role, Permission tables
-- Many-to-many relationships
-- Example queries
-
-### 11. Cosan Router Integration (`cosan-integration/`)
-**Demonstrates:** Integration with the Cosan router for advanced routing features.
+### 7. Cosan Router Integration (`cosan-integration/`)
+**Demonstrates:** Integration with HTTP routers for advanced routing features.
 
 ```bash
 cd examples/cosan-integration
@@ -187,7 +96,7 @@ go run main.go
 ```
 
 Features:
-- Cosan router middleware integration
+- HTTP router middleware integration
 - Route groups with authentication
 - Permission-based route protection
 - Role-based route protection
