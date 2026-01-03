@@ -133,7 +133,7 @@ func TestJWTSignatureValidation(t *testing.T) {
 func TestBruteForceProtection(t *testing.T) {
 	hasher := breitheamh.NewHasher(breitheamh.AlgorithmBcrypt)
 	hash, _ := hasher.Hash("correct-password")
-	
+
 	user := breitheamh.NewBaseUser("1", "test@example.com", hash)
 	maxAttempts := 5
 

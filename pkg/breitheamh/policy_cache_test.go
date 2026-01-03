@@ -150,7 +150,7 @@ func TestPolicyCacheCleanExpired(t *testing.T) {
 
 	cache.Set(key1, true)
 	time.Sleep(60 * time.Millisecond) // Wait for key1 to expire
-	cache.Set(key2, true)              // key2 is fresh
+	cache.Set(key2, true)             // key2 is fresh
 
 	// Before cleanup, size includes expired entries
 	sizeBefore := cache.Size()

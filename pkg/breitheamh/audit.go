@@ -22,9 +22,9 @@ const (
 	EventPasswordReset        AuditEventType = "password.reset.completed"
 
 	// Authorization events
-	EventPermissionDenied AuditEventType = "permission.denied"
-	EventRoleAssigned     AuditEventType = "role.assigned"
-	EventRoleRevoked      AuditEventType = "role.revoked"
+	EventPermissionDenied  AuditEventType = "permission.denied"
+	EventRoleAssigned      AuditEventType = "role.assigned"
+	EventRoleRevoked       AuditEventType = "role.revoked"
 	EventPermissionGranted AuditEventType = "permission.granted"
 	EventPermissionRevoked AuditEventType = "permission.revoked"
 
@@ -83,8 +83,8 @@ type AuditFilter struct {
 
 // MemoryAuditLogger stores audit events in memory (for testing/development)
 type MemoryAuditLogger struct {
-	mu     sync.RWMutex
-	events []*AuditEvent
+	mu      sync.RWMutex
+	events  []*AuditEvent
 	maxSize int
 }
 
@@ -94,7 +94,7 @@ func NewMemoryAuditLogger(maxSize int) *MemoryAuditLogger {
 		maxSize = 10000
 	}
 	return &MemoryAuditLogger{
-		events: make([]*AuditEvent, 0),
+		events:  make([]*AuditEvent, 0),
 		maxSize: maxSize,
 	}
 }
@@ -260,7 +260,7 @@ func NewAuditableGuard(guard Guard, logger AuditLogger) *AuditableGuard {
 // Authenticate wraps guard Authenticate with audit logging
 func (g *AuditableGuard) Authenticate(ctx context.Context, credentials interface{}) (User, error) {
 	user, err := g.Guard.Authenticate(ctx, credentials)
-	
+
 	event := &AuditEvent{
 		Type:      EventLoginSuccess,
 		GuardName: g.Name(),

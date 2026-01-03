@@ -7,6 +7,12 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/toutaio/toutago-breitheamh-auth)](https://goreportcard.com/report/github.com/toutaio/toutago-breitheamh-auth)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Status
+
+✅ **Production Ready** - Stable v0.1+ releases  
+📦 [View Releases](https://github.com/toutaio/toutago-breitheamh-auth/releases) for the latest version  
+📖 [Changelog](CHANGELOG.md) - Full version history
+
 ## 🌟 Features
 
 ### Authentication

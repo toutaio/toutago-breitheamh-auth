@@ -258,7 +258,7 @@ func TestGetUser_NoUser(t *testing.T) {
 func TestGetGuard(t *testing.T) {
 	guard := &mockGuard{}
 	ctx := context.WithValue(context.Background(), guardContextKey, guard)
-	
+
 	retrieved := GetGuard(ctx)
 	if retrieved == nil {
 		t.Error("expected guard in context")

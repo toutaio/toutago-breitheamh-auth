@@ -18,7 +18,7 @@ func AuthMiddleware(guardManager breitheamh.GuardManager, guardName string) func
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			guard := guardManager.Guard(guardName)
-			
+
 			// Extract token from Authorization header
 			authHeader := r.Header.Get("Authorization")
 			if authHeader == "" {
@@ -91,4 +91,3 @@ func GetUser(ctx context.Context) (breitheamh.User, bool) {
 	user, ok := ctx.Value(userContextKey).(breitheamh.User)
 	return user, ok
 }
-

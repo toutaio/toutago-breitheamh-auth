@@ -25,14 +25,14 @@ var (
 
 // PasswordPolicy defines password validation rules
 type PasswordPolicy struct {
-	MinLength          int
-	MaxLength          int
-	RequireUppercase   bool
-	RequireLowercase   bool
-	RequireDigit       bool
-	RequireSpecial     bool
-	ForbiddenPatterns  []string
-	CustomValidators   []PasswordValidator
+	MinLength         int
+	MaxLength         int
+	RequireUppercase  bool
+	RequireLowercase  bool
+	RequireDigit      bool
+	RequireSpecial    bool
+	ForbiddenPatterns []string
+	CustomValidators  []PasswordValidator
 }
 
 // PasswordValidator is a custom password validation function
@@ -61,37 +61,37 @@ func (p *PasswordPolicy) Validate(password string) error {
 	if len(password) < p.MinLength {
 		return ErrPasswordTooShort
 	}
-	
+
 	if p.MaxLength > 0 && len(password) > p.MaxLength {
 		return ErrPasswordTooLong
 	}
-	
+
 	if p.RequireUppercase && !containsUppercase(password) {
 		return ErrPasswordNoUppercase
 	}
-	
+
 	if p.RequireLowercase && !containsLowercase(password) {
 		return ErrPasswordNoLowercase
 	}
-	
+
 	if p.RequireDigit && !containsDigit(password) {
 		return ErrPasswordNoDigit
 	}
-	
+
 	if p.RequireSpecial && !containsSpecial(password) {
 		return ErrPasswordNoSpecial
 	}
-	
+
 	if err := p.checkForbiddenPatterns(password); err != nil {
 		return err
 	}
-	
+
 	for _, validator := range p.CustomValidators {
 		if err := validator(password); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -133,7 +133,7 @@ func containsSpecial(s string) bool {
 
 func (p *PasswordPolicy) checkForbiddenPatterns(password string) error {
 	lowerPassword := toLower(password)
-	
+
 	for _, pattern := range p.ForbiddenPatterns {
 		matched, err := regexp.MatchString(toLower(pattern), lowerPassword)
 		if err != nil {
@@ -143,7 +143,7 @@ func (p *PasswordPolicy) checkForbiddenPatterns(password string) error {
 			return ErrPasswordCommonPattern
 		}
 	}
-	
+
 	return nil
 }
 

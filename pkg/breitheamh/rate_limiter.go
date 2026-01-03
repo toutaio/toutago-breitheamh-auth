@@ -33,9 +33,9 @@ func NewTokenBucketLimiter(rate, burst int, cleanupTTL time.Duration) *TokenBuck
 		buckets:    make(map[string]*bucket),
 		cleanupTTL: cleanupTTL,
 	}
-	
+
 	go limiter.cleanup()
-	
+
 	return limiter
 }
 
@@ -43,7 +43,7 @@ func NewTokenBucketLimiter(rate, burst int, cleanupTTL time.Duration) *TokenBuck
 func (l *TokenBucketLimiter) Allow(key string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	
+
 	b, exists := l.buckets[key]
 	if !exists {
 		b = &bucket{
@@ -53,24 +53,24 @@ func (l *TokenBucketLimiter) Allow(key string) bool {
 		l.buckets[key] = b
 		return true
 	}
-	
+
 	now := time.Now()
 	elapsed := now.Sub(b.lastUpdate)
-	
+
 	tokensToAdd := int(elapsed.Seconds() * float64(l.rate))
 	b.tokens += tokensToAdd
-	
+
 	if b.tokens > l.burst {
 		b.tokens = l.burst
 	}
-	
+
 	b.lastUpdate = now
-	
+
 	if b.tokens > 0 {
 		b.tokens--
 		return true
 	}
-	
+
 	return false
 }
 
@@ -84,7 +84,7 @@ func (l *TokenBucketLimiter) Reset(key string) {
 func (l *TokenBucketLimiter) cleanup() {
 	ticker := time.NewTicker(l.cleanupTTL)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		l.mu.Lock()
 		now := time.Now()
@@ -118,28 +118,28 @@ func NewSlidingWindowLimiter(maxRequests int, window time.Duration) *SlidingWind
 func (l *SlidingWindowLimiter) Allow(key string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	
+
 	now := time.Now()
 	windowStart := now.Add(-l.window)
-	
+
 	timestamps, exists := l.requests[key]
 	if !exists {
 		l.requests[key] = []time.Time{now}
 		return true
 	}
-	
+
 	var validTimestamps []time.Time
 	for _, ts := range timestamps {
 		if ts.After(windowStart) {
 			validTimestamps = append(validTimestamps, ts)
 		}
 	}
-	
+
 	if len(validTimestamps) < l.maxRequests {
 		l.requests[key] = append(validTimestamps, now)
 		return true
 	}
-	
+
 	l.requests[key] = validTimestamps
 	return false
 }

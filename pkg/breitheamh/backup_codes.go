@@ -42,7 +42,7 @@ func (g *BackupCodeGenerator) WithCodeCount(count int) *BackupCodeGenerator {
 // GenerateCodes generates a set of backup codes
 func (g *BackupCodeGenerator) GenerateCodes() ([]string, error) {
 	codes := make([]string, g.codeCount)
-	
+
 	for i := 0; i < g.codeCount; i++ {
 		code, err := g.generateSingleCode()
 		if err != nil {
@@ -50,7 +50,7 @@ func (g *BackupCodeGenerator) GenerateCodes() ([]string, error) {
 		}
 		codes[i] = code
 	}
-	
+
 	return codes, nil
 }
 
@@ -60,27 +60,27 @@ func (g *BackupCodeGenerator) generateSingleCode() (string, error) {
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}
-	
+
 	code := hex.EncodeToString(bytes)
-	
+
 	// Format as XXXX-XXXX for 8-character codes
 	if g.codeLength == 8 {
 		return strings.ToUpper(fmt.Sprintf("%s-%s", code[:4], code[4:])), nil
 	}
-	
+
 	return strings.ToUpper(code[:g.codeLength]), nil
 }
 
 // ValidateCode validates a backup code
 func (g *BackupCodeGenerator) ValidateCode(code string, validCodes []string) bool {
 	normalizedInput := g.normalizeCode(code)
-	
+
 	for _, validCode := range validCodes {
 		if g.normalizeCode(validCode) == normalizedInput {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -120,16 +120,16 @@ func (u *BackupCodeUser) UseBackupCode(code string) bool {
 		normalized = strings.ReplaceAll(normalized, " ", "")
 		return strings.ToUpper(normalized)
 	}
-	
+
 	normalizedInput := normalizeCode(code)
-	
+
 	for i := range u.BackupCodes {
 		if !u.BackupCodes[i].Used && normalizeCode(u.BackupCodes[i].Code) == normalizedInput {
 			u.BackupCodes[i].Used = true
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -160,12 +160,12 @@ func (u *BackupCodeUser) RegenerateBackupCodes(generator *BackupCodeGenerator) (
 	if err != nil {
 		return nil, err
 	}
-	
+
 	backupCodes := make([]BackupCode, len(codes))
 	for i, code := range codes {
 		backupCodes[i] = BackupCode{Code: code, Used: false}
 	}
-	
+
 	u.BackupCodes = backupCodes
 	return codes, nil
 }

@@ -31,7 +31,7 @@ func BenchmarkPasswordHashing(b *testing.B) {
 
 func BenchmarkPermissionMatching(b *testing.B) {
 	trie := NewPermissionTrie()
-	
+
 	permissions := []string{
 		"posts.create",
 		"posts.read",
@@ -73,6 +73,3 @@ func BenchmarkPermissionMatching(b *testing.B) {
 		}
 	})
 }
-
-
-

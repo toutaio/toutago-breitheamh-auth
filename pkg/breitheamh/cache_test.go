@@ -36,7 +36,7 @@ func TestPermissionCache(t *testing.T) {
 
 	t.Run("expiration", func(t *testing.T) {
 		cache.Set("temp:key", "value")
-		
+
 		value, exists := cache.Get("temp:key")
 		if !exists {
 			t.Fatal("expected value to exist immediately")
@@ -100,7 +100,7 @@ func TestRoleCache(t *testing.T) {
 
 	t.Run("expiration", func(t *testing.T) {
 		cache.Set("temp:key", "value")
-		
+
 		time.Sleep(150 * time.Millisecond)
 
 		_, exists := cache.Get("temp:key")

@@ -63,4 +63,3 @@ func (f *ProviderFactory) CreateDataMapperProvider(mapper DataMapper, config *Da
 	f.Register(name, provider)
 	return provider
 }
-

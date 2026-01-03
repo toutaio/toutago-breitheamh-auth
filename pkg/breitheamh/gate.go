@@ -24,8 +24,8 @@ type Gate interface {
 
 // CallbackGate implements Gate using a callback function.
 type CallbackGate struct {
-	name              string
-	callback          GateCallback
+	name               string
+	callback           GateCallback
 	beforeInterceptors []GateInterceptor
 	afterInterceptors  []GateInterceptor
 }

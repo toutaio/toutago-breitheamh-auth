@@ -84,7 +84,7 @@ func (t *TOTP) Validate(secret, code string) bool {
 func (t *TOTP) ValidateWindow(secret, code string, window int) bool {
 	now := time.Now()
 	currentCounter := uint64(now.Unix()) / uint64(t.config.Period)
-	
+
 	for i := -window; i <= window; i++ {
 		counter := currentCounter + uint64(i)
 		expectedCode, err := t.generateHOTP(secret, counter)
@@ -103,13 +103,13 @@ func (t *TOTP) GenerateProvisioningURI(secret, accountName string) string {
 	if accountName == "" {
 		accountName = t.config.AccountName
 	}
-	
+
 	issuer := t.config.Issuer
 	label := accountName
 	if issuer != "" {
 		label = fmt.Sprintf("%s:%s", issuer, accountName)
 	}
-	
+
 	uri := fmt.Sprintf("otpauth://totp/%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
 		label,
 		secret,
@@ -118,31 +118,31 @@ func (t *TOTP) GenerateProvisioningURI(secret, accountName string) string {
 		t.config.Digits,
 		t.config.Period,
 	)
-	
+
 	return uri
 }
 
 func (t *TOTP) generateHOTP(secret string, counter uint64) (string, error) {
 	secret = strings.ToUpper(secret)
 	secret = strings.ReplaceAll(secret, " ", "")
-	
+
 	key, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(secret)
 	if err != nil {
 		return "", fmt.Errorf("invalid secret: %w", err)
 	}
-	
+
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, counter)
-	
+
 	h := hmac.New(sha1.New, key)
 	h.Write(buf)
 	hash := h.Sum(nil)
-	
+
 	offset := hash[len(hash)-1] & 0x0F
 	truncated := binary.BigEndian.Uint32(hash[offset:offset+4]) & 0x7FFFFFFF
-	
+
 	code := truncated % uint32(pow10(t.config.Digits))
-	
+
 	format := fmt.Sprintf("%%0%dd", t.config.Digits)
 	return fmt.Sprintf(format, code), nil
 }

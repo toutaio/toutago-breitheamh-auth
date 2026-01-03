@@ -13,7 +13,7 @@ func TestAdapter(t *testing.T) {
 	provider := memory.NewProvider()
 	hasher := breitheamh.NewHasher(breitheamh.AlgorithmBcrypt)
 	hashedPassword, _ := hasher.Hash("secret")
-	
+
 	user := breitheamh.NewBaseUser("1", "test@example.com", hashedPassword)
 	provider.AddUser(user)
 
@@ -21,7 +21,7 @@ func TestAdapter(t *testing.T) {
 	tokenManager := breitheamh.NewJWTTokenManager(breitheamh.DefaultJWTConfig("testsecret"))
 	jwtGuard := breitheamh.NewJWTGuard("jwt", provider, tokenManager, hasher)
 	guardManager.RegisterGuard("jwt", jwtGuard)
-	
+
 	adapter := NewAdapter(guardManager)
 	ctx := context.Background()
 
@@ -51,7 +51,7 @@ func TestAdapter(t *testing.T) {
 	t.Run("Authenticate", func(t *testing.T) {
 		guard := adapter.Guard("jwt")
 		jwtG := guard.(*breitheamh.JWTGuard)
-		
+
 		authUser, token, err := jwtG.Attempt(ctx, breitheamh.Credentials{
 			Email:    "test@example.com",
 			Password: "secret",
@@ -67,4 +67,3 @@ func TestAdapter(t *testing.T) {
 		}
 	})
 }
-

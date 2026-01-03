@@ -34,15 +34,15 @@ func NewCSRFTokenManager(ttl time.Duration, tokenLen int) *CSRFTokenManager {
 	if tokenLen <= 0 {
 		tokenLen = 32
 	}
-	
+
 	manager := &CSRFTokenManager{
 		tokens:   make(map[string]*csrfToken),
 		ttl:      ttl,
 		tokenLen: tokenLen,
 	}
-	
+
 	go manager.cleanup()
-	
+
 	return manager
 }
 
@@ -52,17 +52,17 @@ func (m *CSRFTokenManager) GenerateToken(sessionID string) (string, error) {
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}
-	
+
 	token := base64.URLEncoding.EncodeToString(bytes)
-	
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	m.tokens[sessionID] = &csrfToken{
 		value:     token,
 		createdAt: time.Now(),
 	}
-	
+
 	return token, nil
 }
 
@@ -70,20 +70,20 @@ func (m *CSRFTokenManager) GenerateToken(sessionID string) (string, error) {
 func (m *CSRFTokenManager) ValidateToken(sessionID, token string) error {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	stored, exists := m.tokens[sessionID]
 	if !exists {
 		return ErrInvalidCSRFToken
 	}
-	
+
 	if time.Since(stored.createdAt) > m.ttl {
 		return ErrExpiredCSRFToken
 	}
-	
+
 	if subtle.ConstantTimeCompare([]byte(stored.value), []byte(token)) != 1 {
 		return ErrInvalidCSRFToken
 	}
-	
+
 	return nil
 }
 
@@ -103,7 +103,7 @@ func (m *CSRFTokenManager) RefreshToken(sessionID string) (string, error) {
 func (m *CSRFTokenManager) cleanup() {
 	ticker := time.NewTicker(m.ttl)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		m.mu.Lock()
 		now := time.Now()

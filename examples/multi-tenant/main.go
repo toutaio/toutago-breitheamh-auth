@@ -27,10 +27,10 @@ type TenantUser struct {
 var (
 	// Tenant-specific user providers
 	tenantProviders = make(map[string]*providers.MemoryProvider)
-	
+
 	// Tenant-specific JWT guards
 	tenantGuards = make(map[string]*breitheamh.JWTGuard)
-	
+
 	// Tenant database
 	tenants = map[string]*Tenant{
 		"acme-corp": {ID: "acme-corp", Name: "Acme Corporation"},
@@ -56,7 +56,7 @@ func setupTenants() {
 	// Setup Acme Corp tenant
 	acmeProvider := providers.NewMemoryProvider()
 	acmeGuard := breitheamh.NewJWTGuard("acme-secret-key", acmeProvider, 24*time.Hour)
-	
+
 	// Create users for Acme Corp
 	acmeAdmin := breitheamh.NewBaseUser(1, "admin@acme.com", "Acme Admin")
 	acmeAdminHash, _ := breitheamh.HashPasswordBcrypt("acme123", 10)
@@ -65,7 +65,7 @@ func setupTenants() {
 	adminRole.GrantPermission(breitheamh.NewPermission("*", "All permissions"))
 	acmeAdmin.AssignRole(adminRole)
 	acmeProvider.AddUser(acmeAdmin)
-	
+
 	acmeUser := breitheamh.NewBaseUser(2, "user@acme.com", "Acme User")
 	acmeUserHash, _ := breitheamh.HashPasswordBcrypt("user123", 10)
 	acmeUser.SetPassword(acmeUserHash)
@@ -73,30 +73,30 @@ func setupTenants() {
 	userRole.GrantPermission(breitheamh.NewPermission("posts.view", "View posts"))
 	acmeUser.AssignRole(userRole)
 	acmeProvider.AddUser(acmeUser)
-	
+
 	tenantProviders["acme-corp"] = acmeProvider
 	tenantGuards["acme-corp"] = acmeGuard
-	
+
 	// Setup Tech Inc tenant
 	techProvider := providers.NewMemoryProvider()
 	techGuard := breitheamh.NewJWTGuard("tech-secret-key", techProvider, 24*time.Hour)
-	
+
 	// Create users for Tech Inc
 	techAdmin := breitheamh.NewBaseUser(1, "admin@tech.com", "Tech Admin")
 	techAdminHash, _ := breitheamh.HashPasswordBcrypt("tech123", 10)
 	techAdmin.SetPassword(techAdminHash)
 	techAdmin.AssignRole(adminRole)
 	techProvider.AddUser(techAdmin)
-	
+
 	techUser := breitheamh.NewBaseUser(2, "user@tech.com", "Tech User")
 	techUserHash, _ := breitheamh.HashPasswordBcrypt("user123", 10)
 	techUser.SetPassword(techUserHash)
 	techUser.AssignRole(userRole)
 	techProvider.AddUser(techUser)
-	
+
 	tenantProviders["tech-inc"] = techProvider
 	tenantGuards["tech-inc"] = techGuard
-	
+
 	log.Println("Tenants configured:")
 	log.Println("  Acme Corp: admin@acme.com / acme123, user@acme.com / user123")
 	log.Println("  Tech Inc: admin@tech.com / tech123, user@tech.com / user123")

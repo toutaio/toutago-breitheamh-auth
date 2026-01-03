@@ -339,12 +339,11 @@ func (u *BaseUser) GrantPermission(permission Permission) {
 	u.GivePermission(permission)
 }
 
-
 // generateSecureToken generates a cryptographically secure random token.
 func generateSecureToken(length int) string {
-b := make([]byte, length)
-if _, err := rand.Read(b); err != nil {
-panic(err)
-}
-return base64.URLEncoding.EncodeToString(b)
+	b := make([]byte, length)
+	if _, err := rand.Read(b); err != nil {
+		panic(err)
+	}
+	return base64.URLEncoding.EncodeToString(b)
 }

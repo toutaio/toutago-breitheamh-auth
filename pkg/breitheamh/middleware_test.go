@@ -323,78 +323,78 @@ func TestMiddlewareChaining(t *testing.T) {
 }
 
 func TestCustomErrorHandler(t *testing.T) {
-hasher := NewHasher(AlgorithmBcrypt)
-provider := newMockUserProvider()
-config := DefaultJWTConfig("test-secret-key-min-32-chars-long")
-tokenManager := NewJWTTokenManager(config)
-guard := NewJWTGuard("jwt", provider, tokenManager, hasher)
+	hasher := NewHasher(AlgorithmBcrypt)
+	provider := newMockUserProvider()
+	config := DefaultJWTConfig("test-secret-key-min-32-chars-long")
+	tokenManager := NewJWTTokenManager(config)
+	guard := NewJWTGuard("jwt", provider, tokenManager, hasher)
 
-t.Run("Default error handler", func(t *testing.T) {
-middleware := NewAuthMiddleware(guard)
+	t.Run("Default error handler", func(t *testing.T) {
+		middleware := NewAuthMiddleware(guard)
 
-req := httptest.NewRequest("GET", "/protected", nil)
-rr := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", "/protected", nil)
+		rr := httptest.NewRecorder()
 
-handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-w.WriteHeader(http.StatusOK)
-})
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 
-middleware.Handle(handler).ServeHTTP(rr, req)
+		middleware.Handle(handler).ServeHTTP(rr, req)
 
-if rr.Code != http.StatusUnauthorized {
-t.Errorf("Status = %d, expected %d", rr.Code, http.StatusUnauthorized)
-}
+		if rr.Code != http.StatusUnauthorized {
+			t.Errorf("Status = %d, expected %d", rr.Code, http.StatusUnauthorized)
+		}
 
-if !strings.Contains(rr.Body.String(), "Unauthorized") {
-t.Error("Expected default error message")
-}
-})
+		if !strings.Contains(rr.Body.String(), "Unauthorized") {
+			t.Error("Expected default error message")
+		}
+	})
 
-t.Run("Custom error handler", func(t *testing.T) {
-customHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-w.WriteHeader(http.StatusUnauthorized)
-w.Write([]byte("Custom auth error"))
-}
+	t.Run("Custom error handler", func(t *testing.T) {
+		customHandler := func(w http.ResponseWriter, r *http.Request, err error) {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Custom auth error"))
+		}
 
-middleware := NewAuthMiddleware(guard).WithErrorHandler(customHandler)
+		middleware := NewAuthMiddleware(guard).WithErrorHandler(customHandler)
 
-req := httptest.NewRequest("GET", "/protected", nil)
-rr := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", "/protected", nil)
+		rr := httptest.NewRecorder()
 
-handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-w.WriteHeader(http.StatusOK)
-})
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 
-middleware.Handle(handler).ServeHTTP(rr, req)
+		middleware.Handle(handler).ServeHTTP(rr, req)
 
-if rr.Code != http.StatusUnauthorized {
-t.Errorf("Status = %d, expected %d", rr.Code, http.StatusUnauthorized)
-}
+		if rr.Code != http.StatusUnauthorized {
+			t.Errorf("Status = %d, expected %d", rr.Code, http.StatusUnauthorized)
+		}
 
-if !strings.Contains(rr.Body.String(), "Custom auth error") {
-t.Errorf("Expected custom error message, got: %s", rr.Body.String())
-}
-})
+		if !strings.Contains(rr.Body.String(), "Custom auth error") {
+			t.Errorf("Expected custom error message, got: %s", rr.Body.String())
+		}
+	})
 
-t.Run("JSON error handler", func(t *testing.T) {
-middleware := NewAuthMiddleware(guard).WithErrorHandler(JSONErrorHandler)
+	t.Run("JSON error handler", func(t *testing.T) {
+		middleware := NewAuthMiddleware(guard).WithErrorHandler(JSONErrorHandler)
 
-req := httptest.NewRequest("GET", "/protected", nil)
-rr := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", "/protected", nil)
+		rr := httptest.NewRecorder()
 
-handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-w.WriteHeader(http.StatusOK)
-})
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
 
-middleware.Handle(handler).ServeHTTP(rr, req)
+		middleware.Handle(handler).ServeHTTP(rr, req)
 
-if rr.Code != http.StatusUnauthorized {
-t.Errorf("Status = %d, expected %d", rr.Code, http.StatusUnauthorized)
-}
+		if rr.Code != http.StatusUnauthorized {
+			t.Errorf("Status = %d, expected %d", rr.Code, http.StatusUnauthorized)
+		}
 
-contentType := rr.Header().Get("Content-Type")
-if contentType != "application/json" {
-t.Errorf("Content-Type = %s, expected application/json", contentType)
-}
-})
+		contentType := rr.Header().Get("Content-Type")
+		if contentType != "application/json" {
+			t.Errorf("Content-Type = %s, expected application/json", contentType)
+		}
+	})
 }

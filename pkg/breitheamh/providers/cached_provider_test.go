@@ -9,8 +9,8 @@ import (
 )
 
 type mockProvider struct {
-	calls     int
-	findByID  func(ctx context.Context, id string) (breitheamh.User, error)
+	calls      int
+	findByID   func(ctx context.Context, id string) (breitheamh.User, error)
 	updateUser func(ctx context.Context, user breitheamh.User) error
 }
 

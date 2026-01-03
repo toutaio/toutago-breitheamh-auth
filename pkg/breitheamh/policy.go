@@ -53,7 +53,7 @@ func NewAuthorizer() *Authorizer {
 		gates:             make(map[string]Gate),
 		permissionMatcher: NewPermissionMatcher(),
 		policyCache:       NewPolicyCache(5 * time.Minute), // Default 5min TTL
-		cacheEnabled:      false,                            // Disabled by default
+		cacheEnabled:      false,                           // Disabled by default
 	}
 }
 
@@ -174,17 +174,17 @@ func (a *Authorizer) Denies(ctx context.Context, gateName string, user User, arg
 // getResourceType returns a string representation of the resource type.
 func getResourceType(resource interface{}) string {
 	t := reflect.TypeOf(resource)
-	
+
 	// Handle pointers
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
-	
+
 	// Return the type name
 	if t.Name() != "" {
 		return t.Name()
 	}
-	
+
 	// Fallback to string representation
 	return t.String()
 }
@@ -195,34 +195,34 @@ func getResourceType(resource interface{}) string {
 func callPolicyMethod(policy Policy, ability string, user User, resource interface{}) *bool {
 	// Convert ability to method name (capitalize first letter)
 	methodName := toPascalCase(ability)
-	
+
 	// Get the policy value and type
 	policyValue := reflect.ValueOf(policy)
 	method := policyValue.MethodByName(methodName)
-	
+
 	// Check if method exists
 	if !method.IsValid() {
 		return nil
 	}
-	
+
 	// Prepare arguments
 	var args []reflect.Value
-	
+
 	// Get method type to determine parameters
 	methodType := method.Type()
-	
+
 	// Build arguments based on method signature
 	argIndex := 0
 	for i := 0; i < methodType.NumIn(); i++ {
 		paramType := methodType.In(i)
-		
+
 		// Check if parameter is User interface
 		if paramType.Kind() == reflect.Interface && paramType.Name() == "User" {
 			args = append(args, reflect.ValueOf(user))
 			argIndex++
 			continue
 		}
-		
+
 		// Check if parameter matches resource type
 		resourceValue := reflect.ValueOf(resource)
 		if resourceValue.Type().AssignableTo(paramType) {
@@ -230,25 +230,25 @@ func callPolicyMethod(policy Policy, ability string, user User, resource interfa
 			argIndex++
 			continue
 		}
-		
+
 		// If we can't match the parameter, return nil
 		return nil
 	}
-	
+
 	// Call the method
 	results := method.Call(args)
-	
+
 	// Check return value
 	if len(results) == 0 {
 		return nil
 	}
-	
+
 	// Get the first return value (should be bool)
 	if results[0].Kind() == reflect.Bool {
 		result := results[0].Bool()
 		return &result
 	}
-	
+
 	return nil
 }
 
@@ -259,13 +259,13 @@ func toPascalCase(s string) string {
 	words := strings.FieldsFunc(s, func(r rune) bool {
 		return r == '-' || r == '_' || r == ' ' || r == '.'
 	})
-	
+
 	// Capitalize each word
 	for i, word := range words {
 		if len(word) > 0 {
 			words[i] = strings.ToUpper(string(word[0])) + strings.ToLower(word[1:])
 		}
 	}
-	
+
 	return strings.Join(words, "")
 }

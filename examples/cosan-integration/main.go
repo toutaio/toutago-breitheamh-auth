@@ -23,7 +23,7 @@ func main() {
 	// Add a test user with roles and permissions
 	hasher := breitheamh.NewBcryptHasher(10)
 	hashedPassword, _ := hasher.Hash("password123")
-	
+
 	user := &breitheamh.BaseUser{
 		ID:       "1",
 		Email:    "admin@example.com",
@@ -69,21 +69,21 @@ func main() {
 	mux.HandleFunc("/dashboard", authMiddleware.Handle(handleDashboard))
 
 	// Routes with role requirements
-	mux.HandleFunc("/admin", 
+	mux.HandleFunc("/admin",
 		authMiddleware.Handle(
 			cosan.RequireRole("admin")(handleAdmin),
 		),
 	)
 
 	// Routes with permission requirements
-	mux.HandleFunc("/posts", 
+	mux.HandleFunc("/posts",
 		authMiddleware.Handle(
 			cosan.RequirePermission("posts.create")(handleCreatePost),
 		),
 	)
 
 	// Routes with multiple role options
-	mux.HandleFunc("/content", 
+	mux.HandleFunc("/content",
 		authMiddleware.Handle(
 			cosan.RequireAnyRole("admin", "editor", "moderator")(handleContent),
 		),

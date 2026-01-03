@@ -123,9 +123,9 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func handleUsers(w http.ResponseWriter, r *http.Request) {
 	user := getAuthUser(r)
-	
+
 	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"message": "Users list",
+		"message":    "Users list",
 		"can_create": user.HasPermission("users.create"),
 		"can_delete": user.HasPermission("users.delete"),
 		"users": []map[string]interface{}{
@@ -160,9 +160,9 @@ func handleUserDelete(w http.ResponseWriter, r *http.Request) {
 
 func handlePosts(w http.ResponseWriter, r *http.Request) {
 	user := getAuthUser(r)
-	
+
 	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"message": "Posts list",
+		"message":    "Posts list",
 		"can_create": user.HasPermission("posts.create"),
 		"can_delete": user.HasPermission("posts.delete"),
 		"posts": []map[string]interface{}{
@@ -196,7 +196,7 @@ func handlePostDelete(w http.ResponseWriter, r *http.Request) {
 
 func handleAdmin(w http.ResponseWriter, r *http.Request) {
 	user := getAuthUser(r)
-	
+
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Admin panel",
 		"user": map[string]interface{}{

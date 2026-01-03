@@ -17,9 +17,9 @@ const (
 
 // AuthMiddleware creates authentication middleware for Cosan router
 type AuthMiddleware struct {
-	guard         breitheamh.Guard
-	errorHandler  func(http.ResponseWriter, *http.Request, error)
-	excludePaths  map[string]bool
+	guard        breitheamh.Guard
+	errorHandler func(http.ResponseWriter, *http.Request, error)
+	excludePaths map[string]bool
 }
 
 // AuthMiddlewareConfig configures authentication middleware

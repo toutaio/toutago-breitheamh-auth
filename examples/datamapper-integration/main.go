@@ -20,19 +20,19 @@ import (
 
 // User represents a database user model
 type User struct {
-	ID                int       `db:"id"`
-	Email             string    `db:"email"`
-	Name              string    `db:"name"`
-	Password          string    `db:"password"`
-	RememberToken     string    `db:"remember_token"`
-	TwoFactorSecret   string    `db:"two_factor_secret"`
-	TwoFactorEnabled  bool      `db:"two_factor_enabled"`
-	EmailVerifiedAt   *time.Time `db:"email_verified_at"`
-	AccountLockedAt   *time.Time `db:"account_locked_at"`
-	FailedLoginCount  int       `db:"failed_login_count"`
-	LastLoginAt       *time.Time `db:"last_login_at"`
-	CreatedAt         time.Time `db:"created_at"`
-	UpdatedAt         time.Time `db:"updated_at"`
+	ID               int        `db:"id"`
+	Email            string     `db:"email"`
+	Name             string     `db:"name"`
+	Password         string     `db:"password"`
+	RememberToken    string     `db:"remember_token"`
+	TwoFactorSecret  string     `db:"two_factor_secret"`
+	TwoFactorEnabled bool       `db:"two_factor_enabled"`
+	EmailVerifiedAt  *time.Time `db:"email_verified_at"`
+	AccountLockedAt  *time.Time `db:"account_locked_at"`
+	FailedLoginCount int        `db:"failed_login_count"`
+	LastLoginAt      *time.Time `db:"last_login_at"`
+	CreatedAt        time.Time  `db:"created_at"`
+	UpdatedAt        time.Time  `db:"updated_at"`
 }
 
 // Role represents a database role model
@@ -60,11 +60,11 @@ type DatamapperUserProvider struct {
 	// In real implementation, this would be:
 	// mapper *datamapper.DataMapper
 	// For this example, we'll use an in-memory map
-	users map[string]*User
-	roles map[int]*Role
-	userRoles map[int][]int // userID -> roleIDs
+	users           map[string]*User
+	roles           map[int]*Role
+	userRoles       map[int][]int // userID -> roleIDs
 	rolePermissions map[int][]int // roleID -> permissionIDs
-	permissions map[int]*Permission
+	permissions     map[int]*Permission
 }
 
 // NewDatamapperUserProvider creates a new datamapper-backed user provider
@@ -83,7 +83,7 @@ func (p *DatamapperUserProvider) RetrieveByID(id interface{}) (breitheamh.User, 
 	// In real implementation:
 	// var user User
 	// err := p.mapper.FindByID(&user, id)
-	
+
 	for _, u := range p.users {
 		if u.ID == id.(int) {
 			return p.convertToBreitheamhUser(u), nil
@@ -102,7 +102,7 @@ func (p *DatamapperUserProvider) RetrieveByCredentials(credentials map[string]in
 	// In real implementation:
 	// var user User
 	// err := p.mapper.Where("email = ?", email).First(&user)
-	
+
 	user, ok := p.users[email]
 	if !ok {
 		return nil, fmt.Errorf("user not found")
@@ -118,7 +118,7 @@ func (p *DatamapperUserProvider) UpdateRememberToken(user breitheamh.User, token
 	//     "remember_token": token,
 	//     "updated_at": time.Now(),
 	// })
-	
+
 	if u, ok := p.users[user.GetEmail()]; ok {
 		u.RememberToken = token
 		u.UpdatedAt = time.Now()
@@ -131,16 +131,16 @@ func (p *DatamapperUserProvider) convertToBreitheamhUser(dbUser *User) breitheam
 	user := breitheamh.NewBaseUser(dbUser.ID, dbUser.Email, dbUser.Name)
 	user.SetPassword(dbUser.Password)
 	user.SetRememberToken(dbUser.RememberToken)
-	
+
 	if dbUser.TwoFactorEnabled {
 		user.SetTwoFactorSecret(dbUser.TwoFactorSecret)
 		user.EnableTwoFactor()
 	}
-	
+
 	if dbUser.EmailVerifiedAt != nil {
 		user.MarkEmailAsVerified()
 	}
-	
+
 	if dbUser.AccountLockedAt != nil {
 		user.LockAccount()
 	}
@@ -150,7 +150,7 @@ func (p *DatamapperUserProvider) convertToBreitheamhUser(dbUser *User) breitheam
 		for _, roleID := range roleIDs {
 			if role, ok := p.roles[roleID]; ok {
 				breitheamhRole := breitheamh.NewRole(role.Name, role.DisplayName)
-				
+
 				// Load permissions for this role
 				if permIDs, ok := p.rolePermissions[roleID]; ok {
 					for _, permID := range permIDs {
@@ -160,7 +160,7 @@ func (p *DatamapperUserProvider) convertToBreitheamhUser(dbUser *User) breitheam
 						}
 					}
 				}
-				
+
 				user.AssignRole(breitheamhRole)
 			}
 		}
@@ -188,24 +188,24 @@ func (p *DatamapperUserProvider) seed() {
 	// Create users
 	adminHash, _ := breitheamh.HashPasswordBcrypt("admin123", 10)
 	p.users["admin@example.com"] = &User{
-		ID:       1,
-		Email:    "admin@example.com",
-		Name:     "Admin User",
-		Password: adminHash,
+		ID:              1,
+		Email:           "admin@example.com",
+		Name:            "Admin User",
+		Password:        adminHash,
 		EmailVerifiedAt: &time.Time{},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
 	}
 
 	editorHash, _ := breitheamh.HashPasswordBcrypt("editor123", 10)
 	p.users["editor@example.com"] = &User{
-		ID:       2,
-		Email:    "editor@example.com",
-		Name:     "Editor User",
-		Password: editorHash,
+		ID:              2,
+		Email:           "editor@example.com",
+		Name:            "Editor User",
+		Password:        editorHash,
 		EmailVerifiedAt: &time.Time{},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
 	}
 
 	// Assign roles to users

@@ -11,29 +11,29 @@ import (
 
 // SQLProvider is a generic SQL-based user provider
 type SQLProvider struct {
-	db                  *sql.DB
-	userTable           string
-	rolesTable          string
-	permissionsTable    string
-	userRolesTable      string
+	db                   *sql.DB
+	userTable            string
+	rolesTable           string
+	permissionsTable     string
+	userRolesTable       string
 	userPermissionsTable string
 	rolePermissionsTable string
-	userFactory         func() breitheamh.User
-	eagerLoadRoles      bool
+	userFactory          func() breitheamh.User
+	eagerLoadRoles       bool
 	eagerLoadPermissions bool
 }
 
 // SQLProviderConfig holds configuration for SQL provider
 type SQLProviderConfig struct {
-	DB                  *sql.DB
-	UserTable           string
-	RolesTable          string
-	PermissionsTable    string
-	UserRolesTable      string
+	DB                   *sql.DB
+	UserTable            string
+	RolesTable           string
+	PermissionsTable     string
+	UserRolesTable       string
 	UserPermissionsTable string
 	RolePermissionsTable string
-	UserFactory         func() breitheamh.User
-	EagerLoadRoles      bool
+	UserFactory          func() breitheamh.User
+	EagerLoadRoles       bool
 	EagerLoadPermissions bool
 }
 
@@ -64,15 +64,15 @@ func NewSQLProvider(config SQLProviderConfig) *SQLProvider {
 	}
 
 	return &SQLProvider{
-		db:                  config.DB,
-		userTable:           config.UserTable,
-		rolesTable:          config.RolesTable,
-		permissionsTable:    config.PermissionsTable,
-		userRolesTable:      config.UserRolesTable,
+		db:                   config.DB,
+		userTable:            config.UserTable,
+		rolesTable:           config.RolesTable,
+		permissionsTable:     config.PermissionsTable,
+		userRolesTable:       config.UserRolesTable,
 		userPermissionsTable: config.UserPermissionsTable,
 		rolePermissionsTable: config.RolePermissionsTable,
-		userFactory:         config.UserFactory,
-		eagerLoadRoles:      config.EagerLoadRoles,
+		userFactory:          config.UserFactory,
+		eagerLoadRoles:       config.EagerLoadRoles,
 		eagerLoadPermissions: config.EagerLoadPermissions,
 	}
 }
@@ -80,7 +80,7 @@ func NewSQLProvider(config SQLProviderConfig) *SQLProvider {
 // RetrieveByID retrieves a user by their unique identifier
 func (p *SQLProvider) RetrieveByID(ctx context.Context, id interface{}) (breitheamh.User, error) {
 	query := fmt.Sprintf("SELECT id, email, password, remember_token FROM %s WHERE id = ?", p.userTable)
-	
+
 	user := p.userFactory()
 	baseUser, ok := user.(*breitheamh.BaseUser)
 	if !ok {
@@ -136,7 +136,7 @@ func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map
 	}
 
 	query := fmt.Sprintf("SELECT id, email, password, remember_token FROM %s WHERE email = ?", p.userTable)
-	
+
 	user := p.userFactory()
 	baseUser, ok := user.(*breitheamh.BaseUser)
 	if !ok {
@@ -187,7 +187,7 @@ func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map
 // RetrieveByToken retrieves a user by their remember token
 func (p *SQLProvider) RetrieveByToken(ctx context.Context, identifier interface{}, token string) (breitheamh.User, error) {
 	query := fmt.Sprintf("SELECT id, email, password, remember_token FROM %s WHERE id = ? AND remember_token = ?", p.userTable)
-	
+
 	user := p.userFactory()
 	baseUser, ok := user.(*breitheamh.BaseUser)
 	if !ok {
@@ -213,7 +213,7 @@ func (p *SQLProvider) RetrieveByToken(ctx context.Context, identifier interface{
 // UpdateRememberToken updates the remember token for a user
 func (p *SQLProvider) UpdateRememberToken(ctx context.Context, user breitheamh.User, token string) error {
 	query := fmt.Sprintf("UPDATE %s SET remember_token = ? WHERE id = ?", p.userTable)
-	
+
 	_, err := p.db.ExecContext(ctx, query, token, user.GetAuthIdentifier())
 	return err
 }
@@ -354,13 +354,13 @@ func (p *SQLProvider) UpdateUser(ctx context.Context, user breitheamh.User) erro
 	if !ok {
 		return fmt.Errorf("user must be of type *BaseUser")
 	}
-	
+
 	query := fmt.Sprintf(`
 		UPDATE %s 
 		SET email = ?, password = ?, remember_token = ?, updated_at = ?
 		WHERE id = ?
 	`, p.userTable)
-	
+
 	_, err := p.db.ExecContext(ctx, query,
 		baseUser.Email,
 		baseUser.Password,
@@ -370,4 +370,3 @@ func (p *SQLProvider) UpdateUser(ctx context.Context, user breitheamh.User) erro
 	)
 	return err
 }
-

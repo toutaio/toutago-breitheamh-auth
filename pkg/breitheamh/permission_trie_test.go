@@ -112,7 +112,7 @@ func TestPermissionTrie_Remove(t *testing.T) {
 	if !trie.Match("users.create") {
 		t.Error("Should match via wildcard")
 	}
-	
+
 	// Remove wildcard
 	if !trie.Remove("users.*") {
 		t.Error("Should successfully remove users.*")

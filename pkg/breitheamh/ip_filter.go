@@ -40,14 +40,14 @@ func (f *IPFilter) AddToWhitelist(ipOrCIDR string) error {
 		f.whitelist[ipOrCIDR] = true
 		return nil
 	}
-	
+
 	if ip := net.ParseIP(ipOrCIDR); ip != nil {
 		f.mu.Lock()
 		defer f.mu.Unlock()
 		f.whitelist[ipOrCIDR] = true
 		return nil
 	}
-	
+
 	return &net.ParseError{Type: "IP address or CIDR", Text: ipOrCIDR}
 }
 
@@ -59,14 +59,14 @@ func (f *IPFilter) AddToBlacklist(ipOrCIDR string) error {
 		f.blacklist[ipOrCIDR] = true
 		return nil
 	}
-	
+
 	if ip := net.ParseIP(ipOrCIDR); ip != nil {
 		f.mu.Lock()
 		defer f.mu.Unlock()
 		f.blacklist[ipOrCIDR] = true
 		return nil
 	}
-	
+
 	return &net.ParseError{Type: "IP address or CIDR", Text: ipOrCIDR}
 }
 
@@ -90,20 +90,20 @@ func (f *IPFilter) IsAllowed(ipStr string) bool {
 	if ip == nil {
 		return false
 	}
-	
+
 	f.mu.RLock()
 	defer f.mu.RUnlock()
-	
+
 	// Check blacklist first
 	if f.isInList(ip, f.blacklist) {
 		return false
 	}
-	
+
 	// In restrictive mode, IP must be whitelisted
 	if f.mode == IPFilterModeRestrictive {
 		return f.isInList(ip, f.whitelist)
 	}
-	
+
 	// In permissive mode, allow if not blacklisted
 	return true
 }
@@ -113,7 +113,7 @@ func (f *IPFilter) isInList(ip net.IP, list map[string]bool) bool {
 	if list[ipStr] {
 		return true
 	}
-	
+
 	for cidr := range list {
 		if _, ipNet, err := net.ParseCIDR(cidr); err == nil {
 			if ipNet.Contains(ip) {
@@ -121,7 +121,7 @@ func (f *IPFilter) isInList(ip net.IP, list map[string]bool) bool {
 			}
 		}
 	}
-	
+
 	return false
 }
 

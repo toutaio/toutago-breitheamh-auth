@@ -79,7 +79,7 @@ func main() {
 
 	// Step 3: Login with 2FA
 	fmt.Println("Step 3: Login with Two-Factor Authentication")
-	
+
 	// First, authenticate with password
 	fmt.Println("Authenticating with email and password...")
 	credentials := map[string]interface{}{

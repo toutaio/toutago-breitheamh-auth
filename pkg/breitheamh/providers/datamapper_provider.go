@@ -65,7 +65,7 @@ func NewDataMapperProvider(mapper DataMapper, config *DataMapperConfig) *DataMap
 func (p *DataMapperProvider) RetrieveByID(ctx context.Context, id interface{}) (breitheamh.User, error) {
 	user := &breitheamh.BaseUser{}
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", p.userTable)
-	
+
 	if err := p.mapper.FindOne(ctx, user, query, id); err != nil {
 		return nil, fmt.Errorf("failed to retrieve user by ID: %w", err)
 	}
@@ -95,7 +95,7 @@ func (p *DataMapperProvider) RetrieveByCredentials(ctx context.Context, credenti
 
 	user := &breitheamh.BaseUser{}
 	var query string
-	
+
 	if _, emailOk := credentials["email"]; emailOk {
 		query = fmt.Sprintf("SELECT * FROM %s WHERE email = $1", p.userTable)
 	} else {
@@ -122,7 +122,7 @@ func (p *DataMapperProvider) RetrieveByCredentials(ctx context.Context, credenti
 func (p *DataMapperProvider) RetrieveByToken(ctx context.Context, identifier, token string) (breitheamh.User, error) {
 	user := &breitheamh.BaseUser{}
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = $1 AND remember_token = $2", p.userTable)
-	
+
 	if err := p.mapper.FindOne(ctx, user, query, identifier, token); err != nil {
 		return nil, fmt.Errorf("failed to retrieve user by token: %w", err)
 	}
@@ -226,4 +226,3 @@ func (p *DataMapperProvider) UpdateUser(ctx context.Context, user breitheamh.Use
 	}
 	return p.mapper.Update(ctx, baseUser)
 }
-

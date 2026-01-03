@@ -7,16 +7,16 @@ import (
 
 // BruteForceProtector manages account locking based on failed login attempts
 type BruteForceProtector struct {
-	maxAttempts    int
-	lockDuration   time.Duration
-	decayDuration  time.Duration
-	attempts       map[string]*loginAttempts
-	mu             sync.RWMutex
+	maxAttempts   int
+	lockDuration  time.Duration
+	decayDuration time.Duration
+	attempts      map[string]*loginAttempts
+	mu            sync.RWMutex
 }
 
 type loginAttempts struct {
-	count      int
-	firstAt    time.Time
+	count       int
+	firstAt     time.Time
 	lockedUntil time.Time
 }
 
@@ -34,10 +34,10 @@ func NewBruteForceProtector(maxAttempts int, lockDuration, decayDuration time.Du
 func (p *BruteForceProtector) RecordFailedAttempt(identifier string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	now := time.Now()
 	attempts, exists := p.attempts[identifier]
-	
+
 	if !exists {
 		p.attempts[identifier] = &loginAttempts{
 			count:   1,
@@ -45,16 +45,16 @@ func (p *BruteForceProtector) RecordFailedAttempt(identifier string) {
 		}
 		return
 	}
-	
+
 	if now.Sub(attempts.firstAt) > p.decayDuration {
 		attempts.count = 1
 		attempts.firstAt = now
 		attempts.lockedUntil = time.Time{}
 		return
 	}
-	
+
 	attempts.count++
-	
+
 	if attempts.count >= p.maxAttempts {
 		attempts.lockedUntil = now.Add(p.lockDuration)
 	}
@@ -71,16 +71,16 @@ func (p *BruteForceProtector) RecordSuccessfulAttempt(identifier string) {
 func (p *BruteForceProtector) IsLocked(identifier string) bool {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	
+
 	attempts, exists := p.attempts[identifier]
 	if !exists {
 		return false
 	}
-	
+
 	if attempts.lockedUntil.IsZero() {
 		return false
 	}
-	
+
 	return time.Now().Before(attempts.lockedUntil)
 }
 
@@ -88,17 +88,17 @@ func (p *BruteForceProtector) IsLocked(identifier string) bool {
 func (p *BruteForceProtector) GetRemainingLockTime(identifier string) time.Duration {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	
+
 	attempts, exists := p.attempts[identifier]
 	if !exists || attempts.lockedUntil.IsZero() {
 		return 0
 	}
-	
+
 	remaining := time.Until(attempts.lockedUntil)
 	if remaining < 0 {
 		return 0
 	}
-	
+
 	return remaining
 }
 
@@ -106,16 +106,16 @@ func (p *BruteForceProtector) GetRemainingLockTime(identifier string) time.Durat
 func (p *BruteForceProtector) GetAttemptCount(identifier string) int {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
-	
+
 	attempts, exists := p.attempts[identifier]
 	if !exists {
 		return 0
 	}
-	
+
 	if time.Since(attempts.firstAt) > p.decayDuration {
 		return 0
 	}
-	
+
 	return attempts.count
 }
 
@@ -130,7 +130,7 @@ func (p *BruteForceProtector) Reset(identifier string) {
 func (p *BruteForceProtector) Cleanup() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	
+
 	now := time.Now()
 	for key, attempts := range p.attempts {
 		if !attempts.lockedUntil.IsZero() && now.After(attempts.lockedUntil) {

@@ -173,180 +173,180 @@ func TestAuthorizerGates(t *testing.T) {
 }
 
 func TestGateInterceptors(t *testing.T) {
-user := NewBaseUser("user-1", "test@example.com", "password")
+	user := NewBaseUser("user-1", "test@example.com", "password")
 
-t.Run("Before interceptor can allow", func(t *testing.T) {
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-return false // Gate would deny
-})
+	t.Run("Before interceptor can allow", func(t *testing.T) {
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			return false // Gate would deny
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-// Before interceptor allows
-allow := true
-return &allow
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			// Before interceptor allows
+			allow := true
+			return &allow
+		})
 
-if !gate.Allows(context.Background(), user) {
-t.Error("Before interceptor should allow access")
-}
-})
+		if !gate.Allows(context.Background(), user) {
+			t.Error("Before interceptor should allow access")
+		}
+	})
 
-t.Run("Before interceptor can deny", func(t *testing.T) {
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-return true // Gate would allow
-})
+	t.Run("Before interceptor can deny", func(t *testing.T) {
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			return true // Gate would allow
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-// Before interceptor denies
-deny := false
-return &deny
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			// Before interceptor denies
+			deny := false
+			return &deny
+		})
 
-if gate.Allows(context.Background(), user) {
-t.Error("Before interceptor should deny access")
-}
-})
+		if gate.Allows(context.Background(), user) {
+			t.Error("Before interceptor should deny access")
+		}
+	})
 
-t.Run("Before interceptor returns nil continues to gate", func(t *testing.T) {
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-return true
-})
+	t.Run("Before interceptor returns nil continues to gate", func(t *testing.T) {
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			return true
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-// Interceptor returns nil, so gate logic should run
-return nil
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			// Interceptor returns nil, so gate logic should run
+			return nil
+		})
 
-if !gate.Allows(context.Background(), user) {
-t.Error("Gate should allow when before interceptor returns nil")
-}
-})
+		if !gate.Allows(context.Background(), user) {
+			t.Error("Gate should allow when before interceptor returns nil")
+		}
+	})
 
-t.Run("After interceptor can override result", func(t *testing.T) {
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-return true // Gate allows
-})
+	t.Run("After interceptor can override result", func(t *testing.T) {
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			return true // Gate allows
+		})
 
-gate.After(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-// After interceptor denies
-deny := false
-return &deny
-})
+		gate.After(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			// After interceptor denies
+			deny := false
+			return &deny
+		})
 
-if gate.Allows(context.Background(), user) {
-t.Error("After interceptor should override and deny")
-}
-})
+		if gate.Allows(context.Background(), user) {
+			t.Error("After interceptor should override and deny")
+		}
+	})
 
-t.Run("Multiple before interceptors", func(t *testing.T) {
-var callOrder []string
+	t.Run("Multiple before interceptors", func(t *testing.T) {
+		var callOrder []string
 
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-callOrder = append(callOrder, "gate")
-return true
-})
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			callOrder = append(callOrder, "gate")
+			return true
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-callOrder = append(callOrder, "before1")
-return nil // Continue
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			callOrder = append(callOrder, "before1")
+			return nil // Continue
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-callOrder = append(callOrder, "before2")
-return nil // Continue
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			callOrder = append(callOrder, "before2")
+			return nil // Continue
+		})
 
-gate.Allows(context.Background(), user)
+		gate.Allows(context.Background(), user)
 
-if len(callOrder) != 3 || callOrder[0] != "before1" || callOrder[1] != "before2" || callOrder[2] != "gate" {
-t.Errorf("Call order incorrect: %v", callOrder)
-}
-})
+		if len(callOrder) != 3 || callOrder[0] != "before1" || callOrder[1] != "before2" || callOrder[2] != "gate" {
+			t.Errorf("Call order incorrect: %v", callOrder)
+		}
+	})
 
-t.Run("Multiple after interceptors", func(t *testing.T) {
-var callOrder []string
+	t.Run("Multiple after interceptors", func(t *testing.T) {
+		var callOrder []string
 
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-callOrder = append(callOrder, "gate")
-return true
-})
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			callOrder = append(callOrder, "gate")
+			return true
+		})
 
-gate.After(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-callOrder = append(callOrder, "after1")
-return nil // Continue
-})
+		gate.After(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			callOrder = append(callOrder, "after1")
+			return nil // Continue
+		})
 
-gate.After(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-callOrder = append(callOrder, "after2")
-return nil // Continue
-})
+		gate.After(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			callOrder = append(callOrder, "after2")
+			return nil // Continue
+		})
 
-gate.Allows(context.Background(), user)
+		gate.Allows(context.Background(), user)
 
-if len(callOrder) != 3 || callOrder[0] != "gate" || callOrder[1] != "after1" || callOrder[2] != "after2" {
-t.Errorf("Call order incorrect: %v", callOrder)
-}
-})
+		if len(callOrder) != 3 || callOrder[0] != "gate" || callOrder[1] != "after1" || callOrder[2] != "after2" {
+			t.Errorf("Call order incorrect: %v", callOrder)
+		}
+	})
 
-t.Run("Before interceptor short-circuits", func(t *testing.T) {
-gateExecuted := false
+	t.Run("Before interceptor short-circuits", func(t *testing.T) {
+		gateExecuted := false
 
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-gateExecuted = true
-return true
-})
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			gateExecuted = true
+			return true
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-// Return early, gate shouldn't execute
-allow := true
-return &allow
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			// Return early, gate shouldn't execute
+			allow := true
+			return &allow
+		})
 
-gate.Allows(context.Background(), user)
+		gate.Allows(context.Background(), user)
 
-if gateExecuted {
-t.Error("Gate should not execute when before interceptor short-circuits")
-}
-})
+		if gateExecuted {
+			t.Error("Gate should not execute when before interceptor short-circuits")
+		}
+	})
 
-t.Run("Interceptor receives gate name", func(t *testing.T) {
-var receivedName string
+	t.Run("Interceptor receives gate name", func(t *testing.T) {
+		var receivedName string
 
-gate := NewCallbackGate("my-gate", func(ctx context.Context, u User, args ...interface{}) bool {
-return true
-})
+		gate := NewCallbackGate("my-gate", func(ctx context.Context, u User, args ...interface{}) bool {
+			return true
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-receivedName = gateName
-return nil
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			receivedName = gateName
+			return nil
+		})
 
-gate.Allows(context.Background(), user)
+		gate.Allows(context.Background(), user)
 
-if receivedName != "my-gate" {
-t.Errorf("Interceptor should receive gate name 'my-gate', got '%s'", receivedName)
-}
-})
+		if receivedName != "my-gate" {
+			t.Errorf("Interceptor should receive gate name 'my-gate', got '%s'", receivedName)
+		}
+	})
 
-t.Run("Interceptor receives arguments", func(t *testing.T) {
-var receivedArgs []interface{}
+	t.Run("Interceptor receives arguments", func(t *testing.T) {
+		var receivedArgs []interface{}
 
-gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
-return true
-})
+		gate := NewCallbackGate("test", func(ctx context.Context, u User, args ...interface{}) bool {
+			return true
+		})
 
-gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
-receivedArgs = args
-return nil
-})
+		gate.Before(func(ctx context.Context, u User, gateName string, args ...interface{}) *bool {
+			receivedArgs = args
+			return nil
+		})
 
-gate.Allows(context.Background(), user, "arg1", 123, true)
+		gate.Allows(context.Background(), user, "arg1", 123, true)
 
-if len(receivedArgs) != 3 {
-t.Errorf("Expected 3 args, got %d", len(receivedArgs))
-}
-if receivedArgs[0] != "arg1" || receivedArgs[1] != 123 || receivedArgs[2] != true {
-t.Errorf("Args not passed correctly: %v", receivedArgs)
-}
-})
+		if len(receivedArgs) != 3 {
+			t.Errorf("Expected 3 args, got %d", len(receivedArgs))
+		}
+		if receivedArgs[0] != "arg1" || receivedArgs[1] != 123 || receivedArgs[2] != true {
+			t.Errorf("Args not passed correctly: %v", receivedArgs)
+		}
+	})
 }

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-01-03
+
+### Added
+- Comprehensive package documentation (doc.go) for pkg.go.dev
+- Release and pre-release GitHub workflows
+- Consistent project structure aligned with Toutā ecosystem
+
+### Changed
+- Documentation improvements for better discoverability
+
 ## [1.0.0] - 2026-01-03
 
 ### Added

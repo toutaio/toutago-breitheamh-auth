@@ -60,16 +60,16 @@ func (s *MemoryPasswordResetTokenStore) Create(email string, expiresIn time.Dura
 	if _, err := rand.Read(tokenBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
-	
+
 	tokenStr := hex.EncodeToString(tokenBytes)
-	
+
 	token := &PasswordResetToken{
 		Token:     tokenStr,
 		Email:     email,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(expiresIn),
 	}
-	
+
 	s.tokens[tokenStr] = token
 	return token, nil
 }
@@ -83,7 +83,7 @@ func (s *MemoryPasswordResetTokenStore) Find(token string) (*PasswordResetToken,
 	if !exists {
 		return nil, fmt.Errorf("token not found")
 	}
-	
+
 	return t, nil
 }
 
@@ -96,7 +96,7 @@ func (s *MemoryPasswordResetTokenStore) MarkAsUsed(token string) error {
 	if !exists {
 		return fmt.Errorf("token not found")
 	}
-	
+
 	now := time.Now()
 	t.UsedAt = &now
 	return nil
@@ -121,7 +121,7 @@ func (s *MemoryPasswordResetTokenStore) DeleteByEmail(email string) error {
 			delete(s.tokens, token)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -136,7 +136,7 @@ func (s *MemoryPasswordResetTokenStore) Cleanup() error {
 			delete(s.tokens, token)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -193,9 +193,9 @@ func (s *MemoryEmailVerificationTokenStore) Create(userID, email string, expires
 	if _, err := rand.Read(tokenBytes); err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
-	
+
 	tokenStr := hex.EncodeToString(tokenBytes)
-	
+
 	token := &EmailVerificationToken{
 		Token:     tokenStr,
 		UserID:    userID,
@@ -203,7 +203,7 @@ func (s *MemoryEmailVerificationTokenStore) Create(userID, email string, expires
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(expiresIn),
 	}
-	
+
 	s.tokens[tokenStr] = token
 	return token, nil
 }
@@ -217,7 +217,7 @@ func (s *MemoryEmailVerificationTokenStore) Find(token string) (*EmailVerificati
 	if !exists {
 		return nil, fmt.Errorf("token not found")
 	}
-	
+
 	return t, nil
 }
 
@@ -230,7 +230,7 @@ func (s *MemoryEmailVerificationTokenStore) MarkAsUsed(token string) error {
 	if !exists {
 		return fmt.Errorf("token not found")
 	}
-	
+
 	now := time.Now()
 	t.UsedAt = &now
 	return nil
@@ -255,7 +255,7 @@ func (s *MemoryEmailVerificationTokenStore) DeleteByUserID(userID string) error 
 			delete(s.tokens, token)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -270,16 +270,16 @@ func (s *MemoryEmailVerificationTokenStore) Cleanup() error {
 			delete(s.tokens, token)
 		}
 	}
-	
+
 	return nil
 }
 
 // PasswordManager handles password reset and email verification flows
 type PasswordManager struct {
-	resetStore        PasswordResetTokenStore
-	verificationStore EmailVerificationTokenStore
-	hasher            *Hasher
-	resetExpiry       time.Duration
+	resetStore         PasswordResetTokenStore
+	verificationStore  EmailVerificationTokenStore
+	hasher             *Hasher
+	resetExpiry        time.Duration
 	verificationExpiry time.Duration
 }
 
@@ -322,7 +322,7 @@ func (pm *PasswordManager) WithVerificationExpiry(expiry time.Duration) *Passwor
 func (pm *PasswordManager) CreatePasswordResetToken(email string) (*PasswordResetToken, error) {
 	// Delete any existing tokens for this email
 	pm.resetStore.DeleteByEmail(email)
-	
+
 	return pm.resetStore.Create(email, pm.resetExpiry)
 }
 
@@ -332,15 +332,15 @@ func (pm *PasswordManager) VerifyPasswordResetToken(token string) (*PasswordRese
 	if err != nil {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
-	
+
 	if t.IsExpired() {
 		return nil, fmt.Errorf("token has expired")
 	}
-	
+
 	if t.IsUsed() {
 		return nil, fmt.Errorf("token has already been used")
 	}
-	
+
 	return t, nil
 }
 
@@ -350,17 +350,17 @@ func (pm *PasswordManager) ResetPassword(token, newPassword string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	// Mark token as used
 	if err := pm.resetStore.MarkAsUsed(token); err != nil {
 		return err
 	}
-	
+
 	// Note: In a real implementation, you would update the user's password here
 	// This requires integration with the UserProvider
 	_ = t // Token contains the email to identify the user
 	_ = newPassword
-	
+
 	return nil
 }
 
@@ -368,7 +368,7 @@ func (pm *PasswordManager) ResetPassword(token, newPassword string) error {
 func (pm *PasswordManager) CreateEmailVerificationToken(userID, email string) (*EmailVerificationToken, error) {
 	// Delete any existing tokens for this user
 	pm.verificationStore.DeleteByUserID(userID)
-	
+
 	return pm.verificationStore.Create(userID, email, pm.verificationExpiry)
 }
 
@@ -378,15 +378,15 @@ func (pm *PasswordManager) VerifyEmailToken(token string) (*EmailVerificationTok
 	if err != nil {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
-	
+
 	if t.IsExpired() {
 		return nil, fmt.Errorf("token has expired")
 	}
-	
+
 	if t.IsUsed() {
 		return nil, fmt.Errorf("token has already been used")
 	}
-	
+
 	return t, nil
 }
 
@@ -396,12 +396,12 @@ func (pm *PasswordManager) VerifyEmail(token string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	// Mark token as used
 	if err := pm.verificationStore.MarkAsUsed(token); err != nil {
 		return "", err
 	}
-	
+
 	return t.UserID, nil
 }
 

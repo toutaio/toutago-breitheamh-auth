@@ -14,18 +14,18 @@ func setupTestGuardManager() (breitheamh.GuardManager, *breitheamh.BaseUser, str
 	provider := memory.NewProvider()
 	hasher := breitheamh.NewHasher(breitheamh.AlgorithmBcrypt)
 	hashedPassword, _ := hasher.Hash("secret")
-	
+
 	user := breitheamh.NewBaseUser("1", "test@example.com", hashedPassword)
-	
+
 	// Add roles and permissions
 	adminRole := breitheamh.Role{ID: "role-1", Name: "admin"}
 	user.AssignRole(adminRole)
-	
+
 	createPerm := breitheamh.Permission{ID: "perm-1", Name: "posts.create"}
 	editPerm := breitheamh.Permission{ID: "perm-2", Name: "posts.edit"}
 	user.GivePermission(createPerm)
 	user.GivePermission(editPerm)
-	
+
 	provider.AddUser(user)
 
 	guardManager := breitheamh.NewGuardManager()
@@ -148,4 +148,3 @@ func TestGetUser(t *testing.T) {
 		t.Errorf("Expected status 200, got %d", w.Code)
 	}
 }
-
