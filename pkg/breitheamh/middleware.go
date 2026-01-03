@@ -189,3 +189,46 @@ return ""
 
 return parts[1]
 }
+
+// PolicyMiddleware creates HTTP middleware for policy-based authorization.
+type PolicyMiddleware struct {
+authorizer *Authorizer
+action     string
+resourceFn func(r *http.Request) interface{}
+}
+
+// RequirePolicy creates middleware that requires passing a policy check.
+// The resourceFn extracts the resource from the request (e.g., from URL params).
+func RequirePolicy(authorizer *Authorizer, action string, resourceFn func(r *http.Request) interface{}) *PolicyMiddleware {
+return &PolicyMiddleware{
+authorizer: authorizer,
+action:     action,
+resourceFn: resourceFn,
+}
+}
+
+// Handle checks if the user can perform the action on the resource.
+func (m *PolicyMiddleware) Handle(next http.Handler) http.Handler {
+return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+user := GetUser(r.Context())
+if user == nil {
+http.Error(w, "Unauthorized", http.StatusUnauthorized)
+return
+}
+
+resource := m.resourceFn(r)
+if !m.authorizer.Can(r.Context(), user, m.action, resource) {
+http.Error(w, "Forbidden", http.StatusForbidden)
+return
+}
+
+next.ServeHTTP(w, r)
+})
+}
+
+// HandleFunc wraps a handler function with policy checking.
+func (m *PolicyMiddleware) HandleFunc(next http.HandlerFunc) http.HandlerFunc {
+return func(w http.ResponseWriter, r *http.Request) {
+m.Handle(next).ServeHTTP(w, r)
+}
+}
