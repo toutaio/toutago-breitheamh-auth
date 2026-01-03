@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -39,7 +40,7 @@ func (r *UserRepository) CreateUser(email, password string) (*breitheamh.BaseUse
 }
 
 func (r *UserRepository) FindByEmail(email string) (breitheamh.User, error) {
-	return r.provider.FindByCredentials(nil, map[string]interface{}{
+	return r.provider.FindByCredentials(context.TODO(), map[string]interface{}{
 		"email": email,
 	})
 }

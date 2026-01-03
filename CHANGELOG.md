@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-01-03
+
+### Fixed
+- Fixed CI workflow to use Go 1.23.x and 1.24.x instead of unsupported 1.22.x
+- Fixed staticcheck errors (nil context and unused function)
+- Fixed example code to use context.TODO() instead of nil context
+- Updated golangci-lint configuration to handle acceptable warnings
+
+### Changed
+- Updated all CI jobs to use Go 1.24.x as default
+- Improved linter configuration for better code quality checks
+
 ## [0.1.2] - 2026-01-03
 
 ### Fixed

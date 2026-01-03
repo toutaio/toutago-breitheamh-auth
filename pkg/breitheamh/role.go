@@ -87,9 +87,3 @@ func (r *Role) GetAllPermissions(roleProvider RoleProvider) []Permission {
 	return perms
 }
 
-// matchesPermissionSimple checks if a permission pattern matches the required permission.
-// This is re-exported from permission.go for use within the package.
-// Supports wildcard matching (e.g., "posts.*" matches "posts.create").
-func matchesPermission(pattern, permission string) bool {
-	return matchesPermissionSimple(pattern, permission)
-}
