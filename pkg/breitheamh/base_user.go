@@ -76,6 +76,21 @@ func (u *BaseUser) HasRole(roleName string) bool {
 	return false
 }
 
+// HasRoleForGuard checks if the user has the specified role for a specific guard.
+func (u *BaseUser) HasRoleForGuard(roleName, guardName string) bool {
+	// Super admins bypass all checks
+	if u.SuperAdmin {
+		return true
+	}
+
+	for _, role := range u.Roles {
+		if role.Name == roleName && role.GuardName == guardName {
+			return true
+		}
+	}
+	return false
+}
+
 // hasRoleRecursive checks role hierarchy for the specified role.
 func (u *BaseUser) hasRoleRecursive(roleName string, role Role) bool {
 	if role.ParentID == nil {
@@ -110,9 +125,44 @@ func (u *BaseUser) HasPermission(permission string) bool {
 	return false
 }
 
+// HasPermissionForGuard checks if the user has the specified permission for a specific guard.
+func (u *BaseUser) HasPermissionForGuard(permission, guardName string) bool {
+	// Super admins bypass all checks
+	if u.SuperAdmin {
+		return true
+	}
+
+	// Check direct permissions
+	for _, p := range u.DirectPermissions {
+		if p.GuardName == guardName && u.permissionMatcher.Match(p.Name, permission) {
+			return true
+		}
+	}
+
+	// Check permissions from roles matching the guard
+	for _, role := range u.Roles {
+		if role.GuardName == guardName && role.HasPermission(permission) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // GetRoles returns all roles assigned to the user.
 func (u *BaseUser) GetRoles() []Role {
 	return u.Roles
+}
+
+// GetRolesForGuard returns all roles assigned to the user for a specific guard.
+func (u *BaseUser) GetRolesForGuard(guardName string) []Role {
+	var filtered []Role
+	for _, role := range u.Roles {
+		if role.GuardName == guardName {
+			filtered = append(filtered, role)
+		}
+	}
+	return filtered
 }
 
 // GetPermissions returns all permissions (direct and from roles).
@@ -142,6 +192,35 @@ func (u *BaseUser) GetPermissions() []Permission {
 	}
 
 	u.cachedPermissions = permissions
+	return permissions
+}
+
+// GetPermissionsForGuard returns all permissions for a specific guard (direct and from roles).
+func (u *BaseUser) GetPermissionsForGuard(guardName string) []Permission {
+	permMap := make(map[string]Permission)
+
+	// Add direct permissions matching the guard
+	for _, p := range u.DirectPermissions {
+		if p.GuardName == guardName {
+			permMap[p.ID] = p
+		}
+	}
+
+	// Add permissions from roles matching the guard
+	for _, role := range u.Roles {
+		if role.GuardName == guardName {
+			for _, p := range role.Permissions {
+				permMap[p.ID] = p
+			}
+		}
+	}
+
+	// Convert map to slice
+	permissions := make([]Permission, 0, len(permMap))
+	for _, p := range permMap {
+		permissions = append(permissions, p)
+	}
+
 	return permissions
 }
 
