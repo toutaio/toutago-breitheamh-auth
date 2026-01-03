@@ -19,6 +19,8 @@ type SQLProvider struct {
 	userPermissionsTable string
 	rolePermissionsTable string
 	userFactory         func() breitheamh.User
+	eagerLoadRoles      bool
+	eagerLoadPermissions bool
 }
 
 // SQLProviderConfig holds configuration for SQL provider
@@ -31,6 +33,8 @@ type SQLProviderConfig struct {
 	UserPermissionsTable string
 	RolePermissionsTable string
 	UserFactory         func() breitheamh.User
+	EagerLoadRoles      bool
+	EagerLoadPermissions bool
 }
 
 // NewSQLProvider creates a new SQL-based user provider
@@ -68,6 +72,8 @@ func NewSQLProvider(config SQLProviderConfig) *SQLProvider {
 		userPermissionsTable: config.UserPermissionsTable,
 		rolePermissionsTable: config.RolePermissionsTable,
 		userFactory:         config.UserFactory,
+		eagerLoadRoles:      config.EagerLoadRoles,
+		eagerLoadPermissions: config.EagerLoadPermissions,
 	}
 }
 
@@ -92,6 +98,31 @@ func (p *SQLProvider) RetrieveByID(ctx context.Context, id interface{}) (breithe
 			return nil, breitheamh.ErrUserNotFound
 		}
 		return nil, err
+	}
+
+	// Eager load relationships if configured
+	if p.eagerLoadRoles {
+		roles, err := p.LoadRoles(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		// Convert []*Role to []Role
+		baseUser.Roles = make([]breitheamh.Role, len(roles))
+		for i, role := range roles {
+			baseUser.Roles[i] = *role
+		}
+	}
+
+	if p.eagerLoadPermissions {
+		permissions, err := p.LoadPermissions(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		// Convert []*Permission to []Permission
+		baseUser.DirectPermissions = make([]breitheamh.Permission, len(permissions))
+		for i, perm := range permissions {
+			baseUser.DirectPermissions[i] = *perm
+		}
 	}
 
 	return user, nil
@@ -123,6 +154,31 @@ func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map
 			return nil, breitheamh.ErrUserNotFound
 		}
 		return nil, err
+	}
+
+	// Eager load relationships if configured
+	if p.eagerLoadRoles {
+		roles, err := p.LoadRoles(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		// Convert []*Role to []Role
+		baseUser.Roles = make([]breitheamh.Role, len(roles))
+		for i, role := range roles {
+			baseUser.Roles[i] = *role
+		}
+	}
+
+	if p.eagerLoadPermissions {
+		permissions, err := p.LoadPermissions(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		// Convert []*Permission to []Permission
+		baseUser.DirectPermissions = make([]breitheamh.Permission, len(permissions))
+		for i, perm := range permissions {
+			baseUser.DirectPermissions[i] = *perm
+		}
 	}
 
 	return user, nil
