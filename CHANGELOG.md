@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Memory user provider for testing
 - Account locking and email verification support
 - Comprehensive test suite with 83.7% coverage
+- Security tests for timing attacks, token tampering, brute force protection
+- Additional BaseUser methods: RecordFailedLogin, Unlock, GenerateEmailVerificationToken, VerifyEmailWithToken
 - CI/CD pipeline with GitHub Actions
 - Repository setup with MIT license
 - Code of Conduct and Contributing guidelines
