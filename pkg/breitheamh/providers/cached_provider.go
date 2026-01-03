@@ -75,7 +75,10 @@ func (cp *CachedProvider) FindByID(ctx context.Context, id string) (breitheamh.U
 }
 
 // FindByCredentials retrieves a user by credentials (not cached for security)
-func (cp *CachedProvider) FindByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
+func (cp *CachedProvider) FindByCredentials(
+	ctx context.Context,
+	credentials map[string]interface{},
+) (breitheamh.User, error) {
 	return cp.provider.FindByCredentials(ctx, credentials)
 }
 

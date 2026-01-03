@@ -210,7 +210,11 @@ type PolicyMiddleware struct {
 
 // RequirePolicy creates middleware that requires passing a policy check.
 // The resourceFn extracts the resource from the request (e.g., from URL params).
-func RequirePolicy(authorizer *Authorizer, action string, resourceFn func(r *http.Request) interface{}) *PolicyMiddleware {
+func RequirePolicy(
+	authorizer *Authorizer,
+	action string,
+	resourceFn func(r *http.Request) interface{},
+) *PolicyMiddleware {
 	return &PolicyMiddleware{
 		authorizer: authorizer,
 		action:     action,
@@ -305,7 +309,13 @@ func JSONErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	}
 
 	// Simple JSON encoding
-	_, _ = w.Write([]byte(`{"error":"` + response.Error + `","message":"` + response.Message + `","code":` + string(rune(response.Code)) + `}`))
+	jsonResp := fmt.Sprintf(
+		`{"error":"%s","message":"%s","code":%d}`,
+		response.Error,
+		response.Message,
+		response.Code,
+	)
+	_, _ = w.Write([]byte(jsonResp))
 }
 
 // WithErrorHandler creates an AuthMiddleware with a custom error handler.

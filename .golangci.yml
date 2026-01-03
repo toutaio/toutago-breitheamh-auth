@@ -87,6 +87,11 @@ issues:
     - linters:
         - gosec
       text: "G115"
+    
+    # Audit filter logic is inherently complex
+    - path: audit\.go
+      linters:
+        - gocyclo
 
 output:
   format: colored-line-number

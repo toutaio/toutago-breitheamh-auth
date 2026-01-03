@@ -131,7 +131,13 @@ func (a *Authorizer) Can(ctx context.Context, user User, ability string, resourc
 }
 
 // computeAuthorization performs the actual authorization check.
-func (a *Authorizer) computeAuthorization(ctx context.Context, user User, ability string, resource interface{}, resourceType string) bool {
+func (a *Authorizer) computeAuthorization(
+	ctx context.Context,
+	user User,
+	ability string,
+	resource interface{},
+	resourceType string,
+) bool {
 	// Check if there's a policy for this resource type
 	if resource != nil && resourceType != "" {
 		if policy, exists := a.policyRegistry.Get(resourceType); exists {

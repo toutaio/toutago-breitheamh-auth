@@ -184,7 +184,10 @@ func NewMemoryEmailVerificationTokenStore() *MemoryEmailVerificationTokenStore {
 }
 
 // Create generates a new email verification token
-func (s *MemoryEmailVerificationTokenStore) Create(userID, email string, expiresIn time.Duration) (*EmailVerificationToken, error) {
+func (s *MemoryEmailVerificationTokenStore) Create(
+	userID, email string,
+	expiresIn time.Duration,
+) (*EmailVerificationToken, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

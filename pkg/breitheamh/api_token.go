@@ -227,7 +227,13 @@ func (g *APITokenGuard) Name() string {
 }
 
 // CreateToken creates a new API token for a user.
-func (g *APITokenGuard) CreateToken(ctx context.Context, user User, name string, abilities []string, expiresAt *time.Time) (*APIToken, error) {
+func (g *APITokenGuard) CreateToken(
+	ctx context.Context,
+	user User,
+	name string,
+	abilities []string,
+	expiresAt *time.Time,
+) (*APIToken, error) {
 	token, err := generateAPIToken()
 	if err != nil {
 		return nil, err

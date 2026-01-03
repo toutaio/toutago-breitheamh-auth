@@ -83,7 +83,10 @@ func (p *DataMapperProvider) RetrieveByID(ctx context.Context, id interface{}) (
 }
 
 // RetrieveByCredentials retrieves a user by their credentials
-func (p *DataMapperProvider) RetrieveByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
+func (p *DataMapperProvider) RetrieveByCredentials(
+	ctx context.Context,
+	credentials map[string]interface{},
+) (breitheamh.User, error) {
 	// Typically credentials contain "email" or "username" and "password"
 	identifier, ok := credentials["email"]
 	if !ok {

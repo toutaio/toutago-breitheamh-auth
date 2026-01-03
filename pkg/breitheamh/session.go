@@ -163,7 +163,13 @@ type SessionGuard struct {
 }
 
 // NewSessionGuard creates a new session guard.
-func NewSessionGuard(name string, provider UserProvider, store SessionStore, hasher *Hasher, config *SessionConfig) *SessionGuard {
+func NewSessionGuard(
+	name string,
+	provider UserProvider,
+	store SessionStore,
+	hasher *Hasher,
+	config *SessionConfig,
+) *SessionGuard {
 	if config == nil {
 		config = DefaultSessionConfig()
 	}

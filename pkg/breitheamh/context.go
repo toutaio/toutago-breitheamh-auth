@@ -67,7 +67,11 @@ func (ac *AuthContext) Attempt(ctx context.Context, credentials interface{}) (Us
 }
 
 // LoginUsingID authenticates a user by ID and stores in context.
-func (ac *AuthContext) LoginUsingID(ctx context.Context, provider UserProvider, userID string) (context.Context, User, error) {
+func (ac *AuthContext) LoginUsingID(
+	ctx context.Context,
+	provider UserProvider,
+	userID string,
+) (context.Context, User, error) {
 	user, err := provider.FindByID(ctx, userID)
 	if err != nil {
 		return ctx, nil, err
