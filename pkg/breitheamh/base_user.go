@@ -1,6 +1,10 @@
 package breitheamh
 
-import "time"
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"time"
+)
 
 // BaseUser provides a default implementation of the User interface.
 // Applications can embed this struct and extend it with additional fields.
@@ -285,3 +289,62 @@ func (u *BaseUser) SetSuperAdmin(isSuperAdmin bool) {
 	u.UpdatedAt = time.Now()
 }
 
+// RecordFailedLogin increments the failed login counter.
+func (u *BaseUser) RecordFailedLogin() {
+	u.FailedLoginCount++
+	// Lock account after 5 failed attempts for 15 minutes
+	if u.FailedLoginCount >= 5 {
+		lockUntil := time.Now().Add(15 * time.Minute)
+		u.LockedUntil = &lockUntil
+	}
+	u.UpdatedAt = time.Now()
+}
+
+// ResetFailedLogins resets the failed login counter.
+func (u *BaseUser) ResetFailedLogins() {
+	u.FailedLoginCount = 0
+	u.UpdatedAt = time.Now()
+}
+
+// Unlock unlocks the user account and resets failed login attempts.
+func (u *BaseUser) Unlock() {
+	u.LockedUntil = nil
+	u.FailedLoginCount = 0
+	u.UpdatedAt = time.Now()
+}
+
+// GenerateEmailVerificationToken generates a unique token for email verification.
+func (u *BaseUser) GenerateEmailVerificationToken() string {
+	// Generate a secure random token (simplified version)
+	token := generateSecureToken(32)
+	u.RememberToken = token
+	u.UpdatedAt = time.Now()
+	return token
+}
+
+// VerifyEmailWithToken verifies the email using the provided token.
+func (u *BaseUser) VerifyEmailWithToken(token string) bool {
+	if u.RememberToken == "" || u.RememberToken != token {
+		return false
+	}
+	now := time.Now()
+	u.EmailVerifiedAt = &now
+	u.RememberToken = "" // Clear token after use
+	u.UpdatedAt = time.Now()
+	return true
+}
+
+// GrantPermission is an alias for GivePermission for consistency.
+func (u *BaseUser) GrantPermission(permission Permission) {
+	u.GivePermission(permission)
+}
+
+
+// generateSecureToken generates a cryptographically secure random token.
+func generateSecureToken(length int) string {
+b := make([]byte, length)
+if _, err := rand.Read(b); err != nil {
+panic(err)
+}
+return base64.URLEncoding.EncodeToString(b)
+}
