@@ -175,7 +175,11 @@ func (p *SQLProvider) LoadRoles(ctx context.Context, user breitheamh.User) ([]*b
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			err = closeErr
+		}
+	}()
 
 	var roles []*breitheamh.Role
 	for rows.Next() {
@@ -213,7 +217,7 @@ func (p *SQLProvider) LoadPermissions(ctx context.Context, user breitheamh.User)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		perm := &breitheamh.Permission{}
@@ -223,13 +227,15 @@ func (p *SQLProvider) LoadPermissions(ctx context.Context, user breitheamh.User)
 		}
 		permissions[perm.Name] = perm
 	}
-	rows.Close()
+	if err = rows.Close(); err != nil {
+		return nil, err
+	}
 
 	rows, err = p.db.QueryContext(ctx, roleQuery, user.GetAuthIdentifier())
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	for rows.Next() {
 		perm := &breitheamh.Permission{}

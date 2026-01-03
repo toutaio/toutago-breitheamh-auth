@@ -305,7 +305,7 @@ w.WriteHeader(http.StatusUnauthorized)
 }
 
 // Simple JSON encoding
-w.Write([]byte(`{"error":"` + response.Error + `","message":"` + response.Message + `","code":` + string(rune(response.Code)) + `}`))
+_, _ = w.Write([]byte(`{"error":"` + response.Error + `","message":"` + response.Message + `","code":` + string(rune(response.Code)) + `}`))
 }
 
 // WithErrorHandler creates an AuthMiddleware with a custom error handler.

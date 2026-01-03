@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -277,6 +278,9 @@ func generateAPIToken() (string, error) {
 // generateAPITokenID generates a unique token ID.
 func generateAPITokenID() string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		// In case of error, use time-based fallback
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
 	return base64.URLEncoding.EncodeToString(b)
 }
