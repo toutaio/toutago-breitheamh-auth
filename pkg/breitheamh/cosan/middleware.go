@@ -72,8 +72,8 @@ func (m *AuthMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// RequirePermission creates middleware that requires a specific permission
-func RequirePermission(permission string) func(http.HandlerFunc) http.HandlerFunc {
+// requireCheck creates middleware that checks a user authorization condition
+func requireCheck(checkFn func(breitheamh.User) bool, errorMsg string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			user := GetUser(r.Context())
@@ -82,8 +82,8 @@ func RequirePermission(permission string) func(http.HandlerFunc) http.HandlerFun
 				return
 			}
 
-			if !user.HasPermission(permission) {
-				http.Error(w, "Forbidden", http.StatusForbidden)
+			if !checkFn(user) {
+				http.Error(w, errorMsg, http.StatusForbidden)
 				return
 			}
 
@@ -92,24 +92,18 @@ func RequirePermission(permission string) func(http.HandlerFunc) http.HandlerFun
 	}
 }
 
+// RequirePermission creates middleware that requires a specific permission
+func RequirePermission(permission string) func(http.HandlerFunc) http.HandlerFunc {
+	return requireCheck(func(u breitheamh.User) bool {
+		return u.HasPermission(permission)
+	}, "Forbidden")
+}
+
 // RequireRole creates middleware that requires a specific role
 func RequireRole(role string) func(http.HandlerFunc) http.HandlerFunc {
-	return func(next http.HandlerFunc) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			user := GetUser(r.Context())
-			if user == nil {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			if !user.HasRole(role) {
-				http.Error(w, "Forbidden", http.StatusForbidden)
-				return
-			}
-
-			next(w, r)
-		}
-	}
+	return requireCheck(func(u breitheamh.User) bool {
+		return u.HasRole(role)
+	}, "Forbidden")
 }
 
 // RequireAnyRole creates middleware that requires any of the specified roles

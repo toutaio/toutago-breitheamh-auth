@@ -32,42 +32,33 @@ func NewIPFilter(mode IPFilterMode) *IPFilter {
 	}
 }
 
-// AddToWhitelist adds an IP or CIDR range to the whitelist
-func (f *IPFilter) AddToWhitelist(ipOrCIDR string) error {
+// addToList is a helper to add an IP or CIDR to a specific list
+func (f *IPFilter) addToList(ipOrCIDR string, list map[string]bool) error {
 	if _, _, err := net.ParseCIDR(ipOrCIDR); err == nil {
 		f.mu.Lock()
 		defer f.mu.Unlock()
-		f.whitelist[ipOrCIDR] = true
+		list[ipOrCIDR] = true
 		return nil
 	}
 
 	if ip := net.ParseIP(ipOrCIDR); ip != nil {
 		f.mu.Lock()
 		defer f.mu.Unlock()
-		f.whitelist[ipOrCIDR] = true
+		list[ipOrCIDR] = true
 		return nil
 	}
 
 	return &net.ParseError{Type: "IP address or CIDR", Text: ipOrCIDR}
 }
 
+// AddToWhitelist adds an IP or CIDR range to the whitelist
+func (f *IPFilter) AddToWhitelist(ipOrCIDR string) error {
+	return f.addToList(ipOrCIDR, f.whitelist)
+}
+
 // AddToBlacklist adds an IP or CIDR range to the blacklist
 func (f *IPFilter) AddToBlacklist(ipOrCIDR string) error {
-	if _, _, err := net.ParseCIDR(ipOrCIDR); err == nil {
-		f.mu.Lock()
-		defer f.mu.Unlock()
-		f.blacklist[ipOrCIDR] = true
-		return nil
-	}
-
-	if ip := net.ParseIP(ipOrCIDR); ip != nil {
-		f.mu.Lock()
-		defer f.mu.Unlock()
-		f.blacklist[ipOrCIDR] = true
-		return nil
-	}
-
-	return &net.ParseError{Type: "IP address or CIDR", Text: ipOrCIDR}
+	return f.addToList(ipOrCIDR, f.blacklist)
 }
 
 // RemoveFromWhitelist removes an IP or CIDR from the whitelist

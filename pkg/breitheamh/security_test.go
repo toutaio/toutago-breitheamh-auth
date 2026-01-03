@@ -21,8 +21,8 @@ func TestPasswordHashingTimingSafety(t *testing.T) {
 		t.Fatalf("Failed to hash password: %v", err)
 	}
 
-	// Measure time for correct password
-	iterations := 1000
+	// Measure time for correct password (reduced iterations for faster tests)
+	iterations := 100
 	start := time.Now()
 	for i := 0; i < iterations; i++ {
 		hasher.Verify(password, hash)

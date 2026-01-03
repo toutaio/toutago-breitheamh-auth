@@ -54,28 +54,7 @@ func (g *JWTGuard) Authenticate(ctx context.Context, credentials interface{}) (U
 		creds = Credentials{Email: email, Password: password}
 	}
 
-	// Find user by credentials
-	user, err := g.userProvider.FindByCredentials(ctx, map[string]interface{}{
-		"email": creds.Email,
-	})
-	if err != nil {
-		return nil, ErrUserNotFound
-	}
-
-	// Check if account is locked
-	if baseUser, ok := user.(*BaseUser); ok {
-		if baseUser.IsLocked() {
-			return nil, ErrAccountLocked
-		}
-	}
-
-	// Verify password
-	err = g.hasher.Verify(creds.Password, user.GetPassword())
-	if err != nil {
-		return nil, ErrInvalidCredentials
-	}
-
-	return user, nil
+	return authenticateWithPassword(ctx, g.userProvider, g.hasher, creds.Email, creds.Password)
 }
 
 // Validate validates a token and returns the associated user.

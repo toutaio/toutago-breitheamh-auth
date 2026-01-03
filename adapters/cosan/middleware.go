@@ -46,8 +46,8 @@ func AuthMiddleware(guardManager breitheamh.GuardManager, guardName string) func
 	}
 }
 
-// PermissionMiddleware checks if user has required permission
-func PermissionMiddleware(permission string) func(http.Handler) http.Handler {
+// checkMiddleware creates middleware that checks a user authorization condition
+func checkMiddleware(checkFn func(breitheamh.User) bool, errorMsg string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user, ok := r.Context().Value(userContextKey).(breitheamh.User)
@@ -56,8 +56,8 @@ func PermissionMiddleware(permission string) func(http.Handler) http.Handler {
 				return
 			}
 
-			if !user.HasPermission(permission) {
-				http.Error(w, "Forbidden", http.StatusForbidden)
+			if !checkFn(user) {
+				http.Error(w, errorMsg, http.StatusForbidden)
 				return
 			}
 
@@ -66,24 +66,18 @@ func PermissionMiddleware(permission string) func(http.Handler) http.Handler {
 	}
 }
 
+// PermissionMiddleware checks if user has required permission
+func PermissionMiddleware(permission string) func(http.Handler) http.Handler {
+	return checkMiddleware(func(u breitheamh.User) bool {
+		return u.HasPermission(permission)
+	}, "Forbidden")
+}
+
 // RoleMiddleware checks if user has required role
 func RoleMiddleware(role string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user, ok := r.Context().Value(userContextKey).(breitheamh.User)
-			if !ok || user == nil {
-				http.Error(w, "Unauthenticated", http.StatusUnauthorized)
-				return
-			}
-
-			if !user.HasRole(role) {
-				http.Error(w, "Forbidden", http.StatusForbidden)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		})
-	}
+	return checkMiddleware(func(u breitheamh.User) bool {
+		return u.HasRole(role)
+	}, "Forbidden")
 }
 
 // GetUser retrieves the authenticated user from request context
