@@ -1,22 +1,55 @@
 package breitheamh
 
 // PermissionMatcher provides advanced permission matching with wildcard support.
+// Uses a trie-based implementation for O(n) lookup where n is the depth of the permission.
 type PermissionMatcher struct {
-	// Future: Trie-based implementation for O(n) lookup
+	trie *PermissionTrie
 }
 
 // NewPermissionMatcher creates a new permission matcher.
 func NewPermissionMatcher() *PermissionMatcher {
-	return &PermissionMatcher{}
+	return &PermissionMatcher{
+		trie: NewPermissionTrie(),
+	}
 }
 
-// Match checks if a permission pattern matches the required permission.
-// Supports the following patterns:
-//   - Exact match: "posts.create" matches "posts.create"
-//   - Suffix wildcard: "posts.*" matches "posts.create", "posts.edit", etc.
-//   - Prefix wildcard: "*.create" matches "posts.create", "users.create", etc.
-//   - Full wildcard: "*" matches everything
+// AddPattern adds a permission pattern to the matcher.
+func (pm *PermissionMatcher) AddPattern(pattern string) {
+	pm.trie.Insert(pattern)
+}
+
+// AddPatterns adds multiple permission patterns to the matcher.
+func (pm *PermissionMatcher) AddPatterns(patterns []string) {
+	for _, pattern := range patterns {
+		pm.trie.Insert(pattern)
+	}
+}
+
+// RemovePattern removes a permission pattern from the matcher.
+func (pm *PermissionMatcher) RemovePattern(pattern string) bool {
+	return pm.trie.Remove(pattern)
+}
+
+// Clear removes all patterns from the matcher.
+func (pm *PermissionMatcher) Clear() {
+	pm.trie.Clear()
+}
+
+// Match checks if a permission matches any pattern in the matcher using the trie.
+// If no patterns have been added, falls back to simple wildcard matching.
 func (pm *PermissionMatcher) Match(pattern, permission string) bool {
+	// If using the trie (when patterns are added)
+	if pm.trie.Size() > 0 {
+		return pm.trie.Match(permission)
+	}
+
+	// Fallback to simple matching for single-pattern checks
+	return matchesPermissionSimple(pattern, permission)
+}
+
+// matchesPermissionSimple provides simple wildcard matching without trie.
+// This is used when checking a single pattern directly.
+func matchesPermissionSimple(pattern, permission string) bool {
 	if pattern == "*" {
 		return true
 	}
@@ -50,7 +83,7 @@ func (pm *PermissionMatcher) Match(pattern, permission string) bool {
 // MatchAny checks if any of the patterns match the required permission.
 func (pm *PermissionMatcher) MatchAny(patterns []string, permission string) bool {
 	for _, pattern := range patterns {
-		if pm.Match(pattern, permission) {
+		if matchesPermissionSimple(pattern, permission) {
 			return true
 		}
 	}

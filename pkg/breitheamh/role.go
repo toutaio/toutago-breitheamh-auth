@@ -31,7 +31,7 @@ type Permission struct {
 // HasPermission checks if the role has a specific permission.
 func (r *Role) HasPermission(permission string) bool {
 	for _, p := range r.Permissions {
-		if matchesPermission(p.Name, permission) {
+		if matchesPermissionSimple(p.Name, permission) {
 			return true
 		}
 	}
@@ -87,20 +87,9 @@ func (r *Role) GetAllPermissions(roleProvider RoleProvider) []Permission {
 	return perms
 }
 
-// matchesPermission checks if a permission pattern matches the required permission.
+// matchesPermissionSimple checks if a permission pattern matches the required permission.
+// This is re-exported from permission.go for use within the package.
 // Supports wildcard matching (e.g., "posts.*" matches "posts.create").
 func matchesPermission(pattern, permission string) bool {
-	if pattern == permission {
-		return true
-	}
-
-	// Simple wildcard matching for now (will be enhanced with trie-based matching)
-	if len(pattern) > 0 && pattern[len(pattern)-1] == '*' {
-		prefix := pattern[:len(pattern)-1]
-		if len(permission) >= len(prefix) && permission[:len(prefix)] == prefix {
-			return true
-		}
-	}
-
-	return false
+	return matchesPermissionSimple(pattern, permission)
 }

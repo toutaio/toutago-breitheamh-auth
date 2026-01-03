@@ -20,7 +20,6 @@ type BaseUser struct {
 
 	// Cached computed permissions (from roles + direct)
 	cachedPermissions []Permission
-	permissionMatcher *PermissionMatcher
 }
 
 // NewBaseUser creates a new base user.
@@ -33,7 +32,6 @@ func NewBaseUser(id, email, password string) *BaseUser {
 		DirectPermissions: []Permission{},
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
-		permissionMatcher: NewPermissionMatcher(),
 	}
 }
 
@@ -110,7 +108,7 @@ func (u *BaseUser) HasPermission(permission string) bool {
 
 	// Check direct permissions
 	for _, p := range u.DirectPermissions {
-		if u.permissionMatcher.Match(p.Name, permission) {
+		if matchesPermissionSimple(p.Name, permission) {
 			return true
 		}
 	}
@@ -134,7 +132,7 @@ func (u *BaseUser) HasPermissionForGuard(permission, guardName string) bool {
 
 	// Check direct permissions
 	for _, p := range u.DirectPermissions {
-		if p.GuardName == guardName && u.permissionMatcher.Match(p.Name, permission) {
+		if p.GuardName == guardName && matchesPermissionSimple(p.Name, permission) {
 			return true
 		}
 	}
