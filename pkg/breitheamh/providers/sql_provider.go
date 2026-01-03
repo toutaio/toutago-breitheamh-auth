@@ -73,7 +73,7 @@ func NewSQLProvider(config SQLProviderConfig) *SQLProvider {
 
 // RetrieveByID retrieves a user by their unique identifier
 func (p *SQLProvider) RetrieveByID(ctx context.Context, id interface{}) (breitheamh.User, error) {
-	query := fmt.Sprintf("SELECT id, email, password, name, remember_token FROM %s WHERE id = ?", p.userTable)
+	query := fmt.Sprintf("SELECT id, email, password, remember_token FROM %s WHERE id = ?", p.userTable)
 	
 	user := p.userFactory()
 	baseUser, ok := user.(*breitheamh.BaseUser)
@@ -85,7 +85,6 @@ func (p *SQLProvider) RetrieveByID(ctx context.Context, id interface{}) (breithe
 		&baseUser.ID,
 		&baseUser.Email,
 		&baseUser.Password,
-		&baseUser.Name,
 		&baseUser.RememberToken,
 	)
 	if err != nil {
@@ -105,7 +104,7 @@ func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map
 		return nil, errors.New("email credential required")
 	}
 
-	query := fmt.Sprintf("SELECT id, email, password, name, remember_token FROM %s WHERE email = ?", p.userTable)
+	query := fmt.Sprintf("SELECT id, email, password, remember_token FROM %s WHERE email = ?", p.userTable)
 	
 	user := p.userFactory()
 	baseUser, ok := user.(*breitheamh.BaseUser)
@@ -117,7 +116,6 @@ func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map
 		&baseUser.ID,
 		&baseUser.Email,
 		&baseUser.Password,
-		&baseUser.Name,
 		&baseUser.RememberToken,
 	)
 	if err != nil {
@@ -132,7 +130,7 @@ func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map
 
 // RetrieveByToken retrieves a user by their remember token
 func (p *SQLProvider) RetrieveByToken(ctx context.Context, identifier interface{}, token string) (breitheamh.User, error) {
-	query := fmt.Sprintf("SELECT id, email, password, name, remember_token FROM %s WHERE id = ? AND remember_token = ?", p.userTable)
+	query := fmt.Sprintf("SELECT id, email, password, remember_token FROM %s WHERE id = ? AND remember_token = ?", p.userTable)
 	
 	user := p.userFactory()
 	baseUser, ok := user.(*breitheamh.BaseUser)
@@ -144,7 +142,6 @@ func (p *SQLProvider) RetrieveByToken(ctx context.Context, identifier interface{
 		&baseUser.ID,
 		&baseUser.Email,
 		&baseUser.Password,
-		&baseUser.Name,
 		&baseUser.RememberToken,
 	)
 	if err != nil {
@@ -168,7 +165,7 @@ func (p *SQLProvider) UpdateRememberToken(ctx context.Context, user breitheamh.U
 // LoadRoles loads roles for a user
 func (p *SQLProvider) LoadRoles(ctx context.Context, user breitheamh.User) ([]*breitheamh.Role, error) {
 	query := fmt.Sprintf(`
-		SELECT r.id, r.name, r.display_name, r.description
+		SELECT r.id, r.name, r.guard_name
 		FROM %s r
 		INNER JOIN %s ur ON r.id = ur.role_id
 		WHERE ur.user_id = ?
@@ -183,7 +180,7 @@ func (p *SQLProvider) LoadRoles(ctx context.Context, user breitheamh.User) ([]*b
 	var roles []*breitheamh.Role
 	for rows.Next() {
 		role := &breitheamh.Role{}
-		err := rows.Scan(&role.ID, &role.Name, &role.DisplayName, &role.Description)
+		err := rows.Scan(&role.ID, &role.Name, &role.GuardName)
 		if err != nil {
 			return nil, err
 		}
@@ -196,14 +193,14 @@ func (p *SQLProvider) LoadRoles(ctx context.Context, user breitheamh.User) ([]*b
 // LoadPermissions loads permissions for a user
 func (p *SQLProvider) LoadPermissions(ctx context.Context, user breitheamh.User) ([]*breitheamh.Permission, error) {
 	directQuery := fmt.Sprintf(`
-		SELECT p.id, p.name, p.display_name, p.description
+		SELECT p.id, p.name, p.guard_name, p.group_name
 		FROM %s p
 		INNER JOIN %s up ON p.id = up.permission_id
 		WHERE up.user_id = ?
 	`, p.permissionsTable, p.userPermissionsTable)
 
 	roleQuery := fmt.Sprintf(`
-		SELECT DISTINCT p.id, p.name, p.display_name, p.description
+		SELECT DISTINCT p.id, p.name, p.guard_name, p.group_name
 		FROM %s p
 		INNER JOIN %s rp ON p.id = rp.permission_id
 		INNER JOIN %s ur ON rp.role_id = ur.role_id
@@ -220,7 +217,7 @@ func (p *SQLProvider) LoadPermissions(ctx context.Context, user breitheamh.User)
 
 	for rows.Next() {
 		perm := &breitheamh.Permission{}
-		err := rows.Scan(&perm.ID, &perm.Name, &perm.DisplayName, &perm.Description)
+		err := rows.Scan(&perm.ID, &perm.Name, &perm.GuardName, &perm.GroupName)
 		if err != nil {
 			return nil, err
 		}
@@ -236,7 +233,7 @@ func (p *SQLProvider) LoadPermissions(ctx context.Context, user breitheamh.User)
 
 	for rows.Next() {
 		perm := &breitheamh.Permission{}
-		err := rows.Scan(&perm.ID, &perm.Name, &perm.DisplayName, &perm.Description)
+		err := rows.Scan(&perm.ID, &perm.Name, &perm.GuardName, &perm.GroupName)
 		if err != nil {
 			return nil, err
 		}
