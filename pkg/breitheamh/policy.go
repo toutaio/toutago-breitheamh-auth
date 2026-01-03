@@ -1,6 +1,10 @@
 package breitheamh
 
-import "context"
+import (
+	"context"
+	"reflect"
+	"strings"
+)
 
 // Policy defines authorization logic for a specific resource type.
 // Policies contain methods that determine if a user can perform actions on resources.
@@ -107,19 +111,99 @@ func (a *Authorizer) Denies(ctx context.Context, gateName string, user User, arg
 
 // getResourceType returns a string representation of the resource type.
 func getResourceType(resource interface{}) string {
-	// Simple type name extraction
-	// In a real implementation, this could use reflection to get the type name
-	return "resource"
+	t := reflect.TypeOf(resource)
+	
+	// Handle pointers
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	
+	// Return the type name
+	if t.Name() != "" {
+		return t.Name()
+	}
+	
+	// Fallback to string representation
+	return t.String()
 }
 
 // callPolicyMethod attempts to call a policy method using reflection.
+// Maps abilities to method names (e.g., "view" -> "View", "create" -> "Create")
 // Returns nil if the method doesn't exist or can't be called.
 func callPolicyMethod(policy Policy, ability string, user User, resource interface{}) *bool {
-	// This is a simplified implementation
-	// In a full implementation, this would use reflection to call methods like:
-	// - View(user, resource) bool
-	// - Create(user, resource) bool
-	// - Update(user, resource) bool
-	// etc.
+	// Convert ability to method name (capitalize first letter)
+	methodName := toPascalCase(ability)
+	
+	// Get the policy value and type
+	policyValue := reflect.ValueOf(policy)
+	method := policyValue.MethodByName(methodName)
+	
+	// Check if method exists
+	if !method.IsValid() {
+		return nil
+	}
+	
+	// Prepare arguments
+	var args []reflect.Value
+	
+	// Get method type to determine parameters
+	methodType := method.Type()
+	
+	// Build arguments based on method signature
+	argIndex := 0
+	for i := 0; i < methodType.NumIn(); i++ {
+		paramType := methodType.In(i)
+		
+		// Check if parameter is User interface
+		if paramType.Kind() == reflect.Interface && paramType.Name() == "User" {
+			args = append(args, reflect.ValueOf(user))
+			argIndex++
+			continue
+		}
+		
+		// Check if parameter matches resource type
+		resourceValue := reflect.ValueOf(resource)
+		if resourceValue.Type().AssignableTo(paramType) {
+			args = append(args, resourceValue)
+			argIndex++
+			continue
+		}
+		
+		// If we can't match the parameter, return nil
+		return nil
+	}
+	
+	// Call the method
+	results := method.Call(args)
+	
+	// Check return value
+	if len(results) == 0 {
+		return nil
+	}
+	
+	// Get the first return value (should be bool)
+	if results[0].Kind() == reflect.Bool {
+		result := results[0].Bool()
+		return &result
+	}
+	
 	return nil
+}
+
+// toPascalCase converts a string to PascalCase.
+// Examples: "view" -> "View", "create-post" -> "CreatePost", "view_user" -> "ViewUser"
+func toPascalCase(s string) string {
+	// Split on common delimiters
+	words := strings.FieldsFunc(s, func(r rune) bool {
+		return r == '-' || r == '_' || r == ' ' || r == '.'
+	})
+	
+	// Capitalize each word
+	for i, word := range words {
+		if len(word) > 0 {
+			words[i] = strings.ToUpper(string(word[0])) + strings.ToLower(word[1:])
+		}
+	}
+	
+	return strings.Join(words, "")
 }

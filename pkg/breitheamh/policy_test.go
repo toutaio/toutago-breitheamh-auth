@@ -109,3 +109,162 @@ func TestAuthorizerWithPolicy(t *testing.T) {
 		}
 	})
 }
+
+func TestPolicyResolver(t *testing.T) {
+authorizer := NewAuthorizer()
+policy := &MockPostPolicy{}
+authorizer.RegisterPolicy("MockPost", policy)
+
+user := NewBaseUser("user-1", "test@example.com", "password")
+otherUser := NewBaseUser("user-2", "other@example.com", "password")
+
+post := &MockPost{
+ID:        "post-1",
+Title:     "Test Post",
+AuthorID:  "user-1",
+Published: true,
+}
+
+t.Run("Policy method View is called for view ability", func(t *testing.T) {
+if !authorizer.Can(context.Background(), user, "view", post) {
+t.Error("Author should be able to view their own post")
+}
+})
+
+t.Run("Policy method Update is called for update ability", func(t *testing.T) {
+if !authorizer.Can(context.Background(), user, "update", post) {
+t.Error("Author should be able to update their own post")
+}
+
+if authorizer.Can(context.Background(), otherUser, "update", post) {
+t.Error("Other user should not be able to update post")
+}
+})
+
+t.Run("Policy method Delete is called for delete ability", func(t *testing.T) {
+if authorizer.Can(context.Background(), user, "delete", post) {
+t.Error("User without permission should not be able to delete")
+}
+
+user.GivePermission(Permission{ID: "1", Name: "posts.delete"})
+if !authorizer.Can(context.Background(), user, "delete", post) {
+t.Error("User with permission should be able to delete")
+}
+})
+
+t.Run("Unpublished post visibility", func(t *testing.T) {
+unpublishedPost := &MockPost{
+ID:        "post-2",
+Title:     "Draft",
+AuthorID:  "user-1",
+Published: false,
+}
+
+if !authorizer.Can(context.Background(), user, "view", unpublishedPost) {
+t.Error("Author should be able to view their unpublished post")
+}
+
+if authorizer.Can(context.Background(), otherUser, "view", unpublishedPost) {
+t.Error("Other user should not be able to view unpublished post")
+}
+})
+}
+
+func TestPolicyResolverWithPermission(t *testing.T) {
+authorizer := NewAuthorizer()
+policy := &MockPostPolicy{}
+authorizer.RegisterPolicy("MockPost", policy)
+
+user := NewBaseUser("user-1", "test@example.com", "password")
+user.GivePermission(Permission{ID: "1", Name: "posts.edit.any"})
+
+post := &MockPost{
+ID:        "post-1",
+AuthorID:  "other-user",
+Published: true,
+}
+
+t.Run("Permission overrides policy", func(t *testing.T) {
+if !authorizer.Can(context.Background(), user, "update", post) {
+t.Error("User with posts.edit.any should be able to update any post")
+}
+})
+}
+
+func TestToPascalCase(t *testing.T) {
+tests := []struct {
+input    string
+expected string
+}{
+{"view", "View"},
+{"create", "Create"},
+{"update", "Update"},
+{"delete", "Delete"},
+{"view-post", "ViewPost"},
+{"create_user", "CreateUser"},
+{"edit.profile", "EditProfile"},
+{"manage-admin-users", "ManageAdminUsers"},
+}
+
+for _, tt := range tests {
+t.Run(tt.input, func(t *testing.T) {
+result := toPascalCase(tt.input)
+if result != tt.expected {
+t.Errorf("toPascalCase(%q) = %q, want %q", tt.input, result, tt.expected)
+}
+})
+}
+}
+
+func TestGetResourceType(t *testing.T) {
+post := &MockPost{ID: "1"}
+
+t.Run("Get type name from pointer", func(t *testing.T) {
+typeName := getResourceType(post)
+if typeName != "MockPost" {
+t.Errorf("getResourceType(post) = %q, want %q", typeName, "MockPost")
+}
+})
+
+t.Run("Get type name from value", func(t *testing.T) {
+typeName := getResourceType(*post)
+if typeName != "MockPost" {
+t.Errorf("getResourceType(*post) = %q, want %q", typeName, "MockPost")
+}
+})
+}
+
+func TestPolicyBeforeHook(t *testing.T) {
+authorizer := NewAuthorizer()
+policy := &MockPostPolicy{}
+authorizer.RegisterPolicy("MockPost", policy)
+
+admin := NewBaseUser("admin-1", "admin@example.com", "password")
+admin.GivePermission(Permission{ID: "1", Name: "admin.all"})
+
+regularUser := NewBaseUser("user-1", "user@example.com", "password")
+
+post := &MockPost{
+ID:        "post-1",
+AuthorID:  "other-user",
+Published: false,
+}
+
+t.Run("Before hook allows admin", func(t *testing.T) {
+// Admin has admin.* permission (matched by admin.all with wildcard)
+// But the Before hook checks for admin.* exactly, so this won't match
+// unless we give exact permission
+admin.GivePermission(Permission{ID: "2", Name: "admin.*"})
+
+if !authorizer.Can(context.Background(), admin, "update", post) {
+t.Error("Admin with admin.* should be allowed via before hook")
+}
+})
+
+t.Run("Before hook returns nil for regular user", func(t *testing.T) {
+// Regular user without author access should be denied
+if authorizer.Can(context.Background(), regularUser, "update", post) {
+t.Error("Regular user should not be able to update other's post")
+}
+})
+}
