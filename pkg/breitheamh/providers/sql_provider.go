@@ -129,7 +129,10 @@ func (p *SQLProvider) RetrieveByID(ctx context.Context, id interface{}) (breithe
 }
 
 // RetrieveByCredentials retrieves a user by their credentials
-func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
+func (p *SQLProvider) RetrieveByCredentials(
+	ctx context.Context,
+	credentials map[string]interface{},
+) (breitheamh.User, error) {
 	email, ok := credentials["email"].(string)
 	if !ok {
 		return nil, errors.New("email credential required")
@@ -185,8 +188,15 @@ func (p *SQLProvider) RetrieveByCredentials(ctx context.Context, credentials map
 }
 
 // RetrieveByToken retrieves a user by their remember token
-func (p *SQLProvider) RetrieveByToken(ctx context.Context, identifier interface{}, token string) (breitheamh.User, error) {
-	query := fmt.Sprintf("SELECT id, email, password, remember_token FROM %s WHERE id = ? AND remember_token = ?", p.userTable)
+func (p *SQLProvider) RetrieveByToken(
+	ctx context.Context,
+	identifier interface{},
+	token string,
+) (breitheamh.User, error) {
+	query := fmt.Sprintf(
+		"SELECT id, email, password, remember_token FROM %s WHERE id = ? AND remember_token = ?",
+		p.userTable,
+	)
 
 	user := p.userFactory()
 	baseUser, ok := user.(*breitheamh.BaseUser)
@@ -344,7 +354,10 @@ func (p *SQLProvider) FindByID(ctx context.Context, id string) (breitheamh.User,
 }
 
 // FindByCredentials implements the UserProvider interface
-func (p *SQLProvider) FindByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
+func (p *SQLProvider) FindByCredentials(
+	ctx context.Context,
+	credentials map[string]interface{},
+) (breitheamh.User, error) {
 	return p.RetrieveByCredentials(ctx, credentials)
 }
 

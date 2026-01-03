@@ -94,6 +94,8 @@ func (u *BaseUser) HasRoleForGuard(roleName, guardName string) bool {
 }
 
 // hasRoleRecursive checks role hierarchy for the specified role.
+//
+//nolint:unparam // result is always false in simplified implementation
 func (u *BaseUser) hasRoleRecursive(_ string, role Role) bool {
 	if role.ParentID == nil {
 		return false

@@ -54,7 +54,10 @@ func (f *ProviderFactory) CreateSQLProvider(config SQLProviderConfig) breitheamh
 }
 
 // CreateDataMapperProvider creates a new DataMapper provider
-func (f *ProviderFactory) CreateDataMapperProvider(mapper DataMapper, config *DataMapperConfig) breitheamh.UserProvider {
+func (f *ProviderFactory) CreateDataMapperProvider(
+	mapper DataMapper,
+	config *DataMapperConfig,
+) breitheamh.UserProvider {
 	provider := NewDataMapperProvider(mapper, config)
 	name := "datamapper"
 	if config != nil && config.UserTable != "" {

@@ -217,7 +217,10 @@ func (p *DataMapperProvider) FindByID(ctx context.Context, id string) (breitheam
 }
 
 // FindByCredentials implements the UserProvider interface
-func (p *DataMapperProvider) FindByCredentials(ctx context.Context, credentials map[string]interface{}) (breitheamh.User, error) {
+func (p *DataMapperProvider) FindByCredentials(
+	ctx context.Context,
+	credentials map[string]interface{},
+) (breitheamh.User, error) {
 	return p.RetrieveByCredentials(ctx, credentials)
 }
 
