@@ -217,10 +217,21 @@ Breitheamh is part of the [Toutā Framework](https://github.com/toutaio) ecosyst
 
 ## 📚 Documentation
 
-- [Quick Start Guide](docs/QUICK_START.md) _(coming soon)_
-- [Authentication Guide](docs/AUTHENTICATION.md) _(coming soon)_
-- [Authorization Guide](docs/AUTHORIZATION.md) _(coming soon)_
-- [API Reference](https://pkg.go.dev/github.com/toutaio/toutago-breitheamh-auth)
+### Getting Started
+- [Quick Start Guide](docs/QUICK_START.md) - Get up and running quickly
+- [Database Schema Examples](docs/DATABASE_SCHEMA.md) - Database setup for authentication
+
+### Core Guides
+- [Authentication Guide](docs/AUTHENTICATION_GUIDE.md) - Guards, JWT, sessions, API tokens
+- [Authorization Guide](docs/AUTHORIZATION_GUIDE.md) - Roles, permissions, policies, gates
+- [Middleware Integration](docs/MIDDLEWARE_GUIDE.md) - HTTP middleware for routes
+
+### Security
+- [Security Best Practices](docs/SECURITY_BEST_PRACTICES.md) - Secure your application
+
+### Reference
+- [API Reference](https://pkg.go.dev/github.com/toutaio/toutago-breitheamh-auth) - Full API documentation
+- [Changelog](CHANGELOG.md) - Release history
 
 ## 💬 Etymology
 
