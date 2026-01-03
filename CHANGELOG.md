@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added (2026-01-03)
+- Full-stack blog application example integrating:
+  - Breitheamh auth for authentication and authorization
+  - Cosan router for HTTP routing
+  - Datamapper for database operations
+  - Scéla bus for event dispatching
+- Performance optimizations:
+  - Permission caching with configurable TTL
+  - Role lookup caching
+  - Optimized wildcard permission matching
+  - Lazy loading for user relations
+  - Query batching for permissions
+- Comprehensive performance benchmarks:
+  - JWT token generation and validation
+  - Password hashing (bcrypt, argon2)
+  - Permission matching (exact and wildcard)
+  - Policy authorization
+  - Rate limiting
+  - Concurrent authentication workflows
 - Ecosystem integration adapters:
   - Toutago framework adapter for seamless integration
   - Cosan router middleware (auth, permission, role-based)
@@ -17,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Two-factor authentication (2FA) example with TOTP and backup codes
 - Multi-tenant application example with isolated authentication per tenant
 - Datamapper integration example showing database-backed user provider pattern
-- 11 comprehensive examples covering authentication, authorization, and integrations
+- 12 comprehensive examples covering authentication, authorization, and integrations
 
 ### Added
 - Core authentication interfaces (User, Guard, UserProvider, Authenticatable)
